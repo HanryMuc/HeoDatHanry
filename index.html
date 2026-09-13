@@ -43,6 +43,28 @@
         .history-item:hover { background-color: #f1f3f5; }
         .image-card img { height: 150px; object-fit: cover; transition: transform 0.2s; }
         .image-card img:hover { transform: scale(1.02); }
+
+        /* CSS Tùy chỉnh cho khung xem ảnh phóng to (Lightbox) độc lập */
+        #customImageViewer {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #customImageViewer img {
+            max-width: 90%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
     </style>
 </head>
 <body>
@@ -201,24 +223,13 @@
         </div>
     </div>
 
-    <!-- Modal Phóng To Ảnh -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-truncate" id="imageModalLabel" style="max-width: 80%;">Xem Ảnh</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center bg-dark">
-                    <img id="modalImagePreview" src="" class="img-fluid rounded" style="max-height: 75vh; object-fit: contain;">
-                </div>
-                <div class="modal-footer">
-                    <a id="modalDownloadBtn" href="#" class="btn btn-success" download>
-                        <i class="fa-solid fa-download me-1"></i> Tải ảnh về máy
-                    </a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                </div>
-            </div>
+    <!-- Khung Phóng To Ảnh (Lightbox tùy chỉnh hoạt động 100%) -->
+    <div id="customImageViewer" onclick="closeImageViewer()">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-4" aria-label="Close" onclick="closeImageViewer()"></button>
+        <img id="viewerImg" src="" alt="Zoom Image">
+        <p id="viewerTitle" class="text-white mt-3 fw-bold"></p>
+        <div class="mt-2" onclick="event.stopPropagation()">
+            <a id="viewerDownloadBtn" href="#" class="btn btn-success btn-sm" download><i class="fa-solid fa-download me-1"></i> Tải ảnh về máy</a>
         </div>
     </div>
 
@@ -463,17 +474,15 @@
         }
 
         function openImageViewer(url, name) {
-            const modalImg = document.getElementById('modalImagePreview');
-            const modalTitle = document.getElementById('imageModalLabel');
-            const downloadBtn = document.getElementById('modalDownloadBtn');
-            
-            modalImg.src = url;
-            modalTitle.textContent = name;
-            downloadBtn.href = url;
-            downloadBtn.download = name;
-            
-            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
-            imageModal.show();
+            document.getElementById('viewerImg').src = url;
+            document.getElementById('viewerTitle').textContent = name;
+            document.getElementById('viewerDownloadBtn').href = url;
+            document.getElementById('viewerDownloadBtn').download = name;
+            document.getElementById('customImageViewer').style.display = 'flex';
+        }
+
+        function closeImageViewer() {
+            document.getElementById('customImageViewer').style.display = 'none';
         }
 
         function deleteImage(id) {
