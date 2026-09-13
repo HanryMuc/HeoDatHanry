@@ -42,7 +42,7 @@
                     <form id="authForm" onsubmit="handleAuth(event)">
                         <div class="mb-3">
                             <label for="username" class="form-label">Tên đăng nhập:</label>
-                            <input type="text" class="form-control" id="username" placeholder="vd: dinhquocnam" required>
+                            <input type="text" class="form-control" id="username" placeholder="vd: HanryMuc" required>
                             <div class="form-text text-muted small">Viết liền, không dấu, không ký tự đặc biệt.</div>
                         </div>
                         <div class="mb-3">
@@ -212,54 +212,41 @@
             errorEl.classList.remove('d-none');
         }
 
-        // Hàm kiểm tra tính hợp lệ của Tên đăng nhập và Mật khẩu chung cho cả 2 form
-        function validateInput(username, password) {
-            // 1. Kiểm tra Tên đăng nhập: viết liền, không dấu, không ký tự đặc biệt
-            const usernameRegex = /^[a-z0-9]+$/;
-            if (!usernameRegex.test(username)) {
-                showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt!");
-                return false;
-            }
-
-            // 2. Kiểm tra Mật khẩu: ít nhất 8 ký tự
-            if (password.length < 8) {
-                showError("Mật khẩu cần ít nhất 8 ký tự!");
-                return false;
-            }
-
-            // 3. Kiểm tra Mật khẩu: ít nhất 1 chữ in hoa
-            const hasUpperCase = /[A-Z]/.test(password);
-            if (!hasUpperCase) {
-                showError("Mật khẩu phải bao gồm ít nhất 1 chữ in hoa!");
-                return false;
-            }
-
-            // 4. Kiểm tra Mật khẩu: ít nhất 1 ký tự đặc biệt
-            const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-            if (!hasSpecialChar) {
-                showError("Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt!");
-                return false;
-            }
-
-            return true;
-        }
-
         // Xử lý xác thực Đăng Ký / Đăng Nhập
         function handleAuth(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('username').value.trim();
             const passInput = document.getElementById('userPassword').value;
 
-            // Kiểm tra định dạng Tên đăng nhập & Mật khẩu trước tiên
-            if (!validateInput(usernameInput, passInput)) {
+            // --- BƯỚC 1: KIỂM TRA ĐỊNH DẠNG TÊN ĐĂNG NHẬP & MẬT KHẨU ---
+            const usernameRegex = /^[a-zA-Z0-9]+$/;
+            if (!usernameRegex.test(usernameInput)) {
+                showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt!");
                 return;
             }
 
-            // Lấy danh sách tài khoản đã lưu trong localStorage
+            if (passInput.length < 8) {
+                showError("Mật khẩu cần ít nhất 8 ký tự!");
+                return;
+            }
+
+            const hasUpperCase = /[A-Z]/.test(passInput);
+            if (!hasUpperCase) {
+                showError("Mật khẩu phải bao gồm ít nhất 1 chữ in hoa!");
+                return;
+            }
+
+            const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passInput);
+            if (!hasSpecialChar) {
+                showError("Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt!");
+                return;
+            }
+
+            // --- BƯỚC 2: KIỂM TRA DỮ LIỆU TÀI KHOẢN TRONG LOCALSTORAGE ---
             let accounts = JSON.parse(localStorage.getItem('saved_accounts')) || {};
 
             if (!isLoginMode) {
-                // --- XỬ LÝ ĐĂNG KÝ ---
+                // XỬ LÝ ĐĂNG KÝ: Nếu tên đã tồn tại thì báo lỗi
                 if (accounts[usernameInput]) {
                     showError("Tên đăng nhập này đã tồn tại! Vui lòng chọn tên khác.");
                     return;
@@ -271,18 +258,16 @@
 
                 alert('Đăng ký tài khoản thành công!');
                 document.getElementById('authForm').reset();
-                
-                // Chuyển về chế độ đăng nhập sau khi đăng ký thành công
-                toggleAuthMode(event);
+                toggleAuthMode(event); // Chuyển sang form đăng nhập
             } else {
-                // --- XỬ LÝ ĐĂNG NHẬP ---
-                // 1. Nếu chưa đăng ký tài khoản
+                // XỬ LÝ ĐĂNG NHẬP:
+                // 1. Kiểm tra nếu chưa đăng ký tài khoản
                 if (!accounts[usernameInput]) {
                     showError("Tài khoản chưa được đăng ký, mời bạn đăng ký tài khoản trước!");
                     return;
                 }
 
-                // 2. Nếu đúng tên nhưng sai mật khẩu
+                // 2. Kiểm tra nếu sai mật khẩu
                 if (accounts[usernameInput] !== passInput) {
                     showError("Sai mật khẩu, vui lòng kiểm tra lại!");
                     return;
