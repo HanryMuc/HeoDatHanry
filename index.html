@@ -45,15 +45,19 @@
                 <div class="card shadow-sm p-4 border-0 rounded-4">
                     <h4 class="text-center mb-3 text-secondary" id="authTitle">Đăng Nhập Tài Khoản</h4>
                     
+                    <!-- Hiển thị thông báo lỗi chi tiết -->
+                    <div id="authErrorMsg" class="alert alert-danger d-none py-2 mb-3 text-center small" role="alert"></div>
+
                     <form id="authForm" onsubmit="handleAuth(event)">
                         <div class="mb-3">
-                            <label for="userEmail" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="userEmail" placeholder="vd: nam@gmail.com" required>
+                            <label for="username" class="form-label">Tên đăng nhập:</label>
+                            <input type="text" class="form-control" id="username" placeholder="vd: dinhduongnam" required>
+                            <div class="form-text text-muted small">Viết liền, không dấu, không ký tự đặc biệt.</div>
                         </div>
                         <div class="mb-3">
                             <label for="userPassword" class="form-label">Mật khẩu:</label>
-                            <input type="password" class="form-control" id="userPassword" placeholder="********" minlength="6" required>
-                            <div class="form-text">Mật khẩu từ 6 ký tự trở lên.</div>
+                            <input type="password" class="form-control" id="userPassword" placeholder="********" required>
+                            <div class="form-text text-muted small">Ít nhất 8 ký tự, có 1 chữ in hoa và 1 ký tự đặc biệt.</div>
                         </div>
 
                         <div class="d-grid gap-2 mb-3">
@@ -174,6 +178,7 @@
         // Kiểm tra trạng thái đăng nhập khi load trang
         function checkAuthState() {
             currentUser = localStorage.getItem('currentUser') || null;
+            document.getElementById('authErrorMsg').classList.add('d-none'); // ẩn lỗi cũ
             if (currentUser) {
                 document.getElementById('authSection').classList.add('d-none');
                 document.getElementById('appSection').classList.remove('d-none');
@@ -194,6 +199,7 @@
             const btnEl = document.getElementById('authActionBtn');
             const toggleTextEl = document.getElementById('authToggleText');
             const toggleLinkEl = document.getElementById('authToggleLink');
+            document.getElementById('authErrorMsg').classList.add('d-none');
 
             if (isLoginMode) {
                 titleEl.textContent = "Đăng Nhập Tài Khoản";
@@ -208,18 +214,48 @@
             }
         }
 
-        // Xử lý sự kiện Submit Form Đăng Nhập / Đăng Ký
+        // Hàm hiển thị lỗi trực tiếp ra màn hình
+        function showError(message) {
+            const errorEl = document.getElementById('authErrorMsg');
+            errorEl.textContent = message;
+            errorEl.classList.remove('d-none');
+        }
+
+        // Xử lý sự kiện Submit Form Đăng Nhập / Đăng Ký với chuẩn validation mới
         function handleAuth(event) {
             event.preventDefault();
-            const email = document.getElementById('userEmail').value.trim();
-            const pass = document.getElementById('userPassword').value.trim();
+            const usernameInput = document.getElementById('username').value.trim();
+            const passInput = document.getElementById('userPassword').value;
 
-            if (!email || !pass) {
-                alert('Vui lòng nhập đầy đủ Email và Mật khẩu!');
+            // 1. Kiểm tra Tên đăng nhập: viết liền, không dấu, không ký tự đặc biệt
+            // Regex chỉ cho phép chữ cái không dấu (a-z) và chữ số (0-9)
+            const usernameRegex = /^[a-z0-9]+$/;
+            if (!usernameRegex.test(usernameInput)) {
+                showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt hoặc khoảng trắng!");
                 return;
             }
 
-            currentUser = email;
+            // 2. Kiểm tra Mật khẩu: ít nhất 8 ký tự, có 1 chữ in hoa, 1 ký tự đặc biệt
+            if (passInput.length < 8) {
+                showError("Mật khẩu phải có ít nhất 8 ký tự!");
+                return;
+            }
+
+            const hasUpperCase = /[A-Z]/.test(passInput);
+            if (!hasUpperCase) {
+                showError("Mật khẩu phải chứa ít nhất 1 chữ cái in hoa!");
+                return;
+            }
+
+            const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passInput);
+            if (!hasSpecialChar) {
+                showError("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (VD: @, #, $, !,...)!");
+                return;
+            }
+
+            // Nếu vượt qua tất cả kiểm tra
+            document.getElementById('authErrorMsg').classList.add('d-none');
+            currentUser = usernameInput;
             localStorage.setItem('currentUser', currentUser);
             
             if (isLoginMode) {
