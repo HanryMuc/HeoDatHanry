@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heo Đất Tiết Kiệm - Đồng Bộ Firebase</title>
+    <title>Quản Lý Dòng Tiền - Đám Mây</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icon -->
@@ -41,13 +41,14 @@
         body { background-color: #f8f9fa; }
         .card-summary { background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; border-radius: 15px; }
         .history-item:hover { background-color: #f1f3f5; }
-        .image-card img { height: 150px; object-fit: cover; }
+        .image-card img { height: 150px; object-fit: cover; transition: transform 0.2s; }
+        .image-card img:hover { transform: scale(1.02); }
     </style>
 </head>
 <body>
 
     <div class="container py-4">
-        <h2 class="text-center mb-3 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Tài Chính & Lưu Trữ (Cloud)</h2>
+        <h2 class="text-center mb-3 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Dòng Tiền & Lưu Trữ (Cloud)</h2>
 
         <!-- KHU VỰC 1: ĐĂNG NHẬP / ĐĂNG KÝ -->
         <div id="authSection" class="row justify-content-center">
@@ -112,13 +113,13 @@
                 <li class="nav-item"><button class="nav-link active fw-bold px-3 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')"><i class="fa-solid fa-house me-1"></i> Giao Dịch</button></li>
                 <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left me-1"></i> Xem Lịch Sử</button></li>
                 <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabProfileBtn" onclick="switchTab('profile')"><i class="fa-solid fa-user-gear me-1"></i> Thông Tin Cá Nhân</button></li>
-                <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabImagesBtn" onclick="switchTab('images')"><i class="fa-solid fa-images me-1"></i> Kho Ảnh & Thùng Rác</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabImagesBtn" onclick="switchTab('images')"><i class="fa-solid fa-images me-1"></i> Kho Ảnh</button></li>
             </ul>
 
             <div class="row justify-content-center">
                 <div class="col-md-8 mb-4" id="balanceCardContainer">
                     <div class="card card-summary shadow-sm p-4 text-center">
-                        <h5>Số Tiền Tiết Kiệm Hiện Tại</h5>
+                        <h5>Số Tiền Hiện Tại</h5>
                         <h1 id="totalBalance" class="display-4 fw-bold my-2">0 đ</h1>
                         <p class="mb-0 opacity-75">Đồng bộ đám mây thời gian thực!</p>
                     </div>
@@ -131,11 +132,11 @@
                         <form id="moneyForm" onsubmit="event.preventDefault();">
                             <div class="mb-3">
                                 <label class="form-label">Nhập số tiền (VNĐ):</label>
-                                <input type="number" class="form-control form-control-lg" id="amount" placeholder="VD: 50000" min="10000" step="1000" required>
+                                <input type="number" class="form-control form-control-lg" id="amount" placeholder="VD: 50000" min="1000" step="1000" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Ghi chú:</label>
-                                <input type="text" class="form-control" id="note" placeholder="VD: Tiền ống heo...">
+                                <input type="text" class="form-control" id="note" placeholder="VD: Tiền ăn sáng, lương...">
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="button" onclick="addMoney('deposit')" class="btn btn-success flex-fill py-2 fw-bold"><i class="fa-solid fa-plus-circle"></i> Thêm Tiền</button>
@@ -188,13 +189,34 @@
                     <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
                         <h5 class="mb-3 text-primary">Tải Ảnh Lên Kho</h5>
                         <input type="file" class="form-control mb-3" id="imageInput" accept="image/*">
-                        <button onclick="uploadImage()" class="btn btn-primary fw-bold w-100 py-2">Tải Ảnh Lên Cloud</button>
+                        <button onclick="uploadImage()" class="btn btn-primary fw-bold w-100 py-2"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Tải Ảnh Lên Cloud</button>
                     </div>
                     <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
                         <h5 class="mb-3">Danh Sách Ảnh</h5>
                         <div class="row" id="imageListContainer"></div>
                         <p id="emptyImageMsg" class="text-center text-muted mt-3 d-none">Chưa có ảnh nào.</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Phóng To Ảnh -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-truncate" id="imageModalLabel" style="max-width: 80%;">Xem Ảnh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center bg-dark">
+                    <img id="modalImagePreview" src="" class="img-fluid rounded" style="max-height: 75vh; object-fit: contain;">
+                </div>
+                <div class="modal-footer">
+                    <a id="modalDownloadBtn" href="#" class="btn btn-success" download>
+                        <i class="fa-solid fa-download me-1"></i> Tải ảnh về máy
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
@@ -368,8 +390,8 @@
             const noteInput = document.getElementById('note');
             const amount = parseFloat(amountInput.value);
 
-            if (isNaN(amount) || amount < 10000) {
-                alert('Tối thiểu 10.000 đ!'); return;
+            if (isNaN(amount) || amount < 1000) {
+                alert('Số tiền tối thiểu là 1.000 đ!'); return;
             }
             const now = new Date();
             transactions.push({ type, amount, note: noteInput.value.trim(), date: now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN') });
@@ -379,14 +401,14 @@
         }
 
         function deleteItem(index) {
-            if (confirm('Xóa giao dịch này?')) {
+            if (confirm('Bạn có chắc muốn xóa giao dịch này?')) {
                 transactions.splice(index, 1);
                 updateUI();
             }
         }
 
         function clearHistory() {
-            if (confirm('Xóa toàn bộ lịch sử?')) {
+            if (confirm('Bạn có muốn xóa toàn bộ lịch sử giao dịch?')) {
                 transactions = [];
                 updateUI();
             }
@@ -394,7 +416,10 @@
 
         function uploadImage() {
             const fileInput = document.getElementById('imageInput');
-            if (fileInput.files.length === 0) return;
+            if (fileInput.files.length === 0) {
+                alert('Vui lòng chọn một hình ảnh!');
+                return;
+            }
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -408,18 +433,54 @@
         function updateImageUI() {
             const imageListContainer = document.getElementById('imageListContainer');
             imageListContainer.innerHTML = '';
-            userImages.forEach(img => {
-                const col = document.createElement('div');
-                col.className = 'col-md-4 mb-3';
-                col.innerHTML = `<div class="card h-100 shadow-sm image-card"><img src="${img.data}" class="card-img-top"><div class="card-body p-2"><p class="small text-truncate">${img.name}</p><button onclick="deleteImage(${img.id})" class="btn btn-outline-danger btn-sm w-100">Xóa</button></div></div>`;
-                imageListContainer.appendChild(col);
-            });
+            
+            if (userImages.length === 0) {
+                document.getElementById('emptyImageMsg').classList.remove('d-none');
+            } else {
+                document.getElementById('emptyImageMsg').classList.add('d-none');
+                userImages.forEach(img => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="card h-100 shadow-sm image-card">
+                            <img src="${img.data}" class="card-img-top" style="cursor: pointer;" onclick="openImageViewer('${img.data}', '${img.name}')" title="Bấm để phóng to">
+                            <div class="card-body p-2 d-flex flex-column justify-content-between">
+                                <p class="small text-truncate mb-2" title="${img.name}">${img.name}</p>
+                                <div class="d-flex gap-1">
+                                    <a href="${img.data}" download="${img.name}" class="btn btn-outline-success btn-sm flex-fill" title="Tải ảnh về máy">
+                                        <i class="fa-solid fa-download"></i> Tải
+                                    </a>
+                                    <button onclick="deleteImage(${img.id})" class="btn btn-outline-danger btn-sm" title="Xóa ảnh">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    imageListContainer.appendChild(col);
+                });
+            }
             syncDataToFirebase();
         }
 
+        function openImageViewer(url, name) {
+            const modalImg = document.getElementById('modalImagePreview');
+            const modalTitle = document.getElementById('imageModalLabel');
+            const downloadBtn = document.getElementById('modalDownloadBtn');
+            
+            modalImg.src = url;
+            modalTitle.textContent = name;
+            downloadBtn.href = url;
+            downloadBtn.download = name;
+            
+            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            imageModal.show();
+        }
+
         function deleteImage(id) {
-            userImages = userImages.filter(i => i.id != id);
-            updateImageUI();
+            if (confirm('Bạn có chắc muốn xóa ảnh này khỏi kho?')) {
+                userImages = userImages.filter(i => i.id != id);
+                updateImageUI();
+            }
         }
 
         function logout() {
