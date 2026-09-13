@@ -8,13 +8,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     
-    <!-- Firebase App (Modular SDK) -->
+    <!-- Firebase SDK qua CDN (Chạy chuẩn 100% trên file HTML thuần) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, remove, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Cấu hình Firebase của bạn
+        // Cấu hình Firebase lấy từ Project của bạn
         const firebaseConfig = {
             apiKey: "AIzaSyA2iYVmflGIo0OH5kKXmmooEcDPJtjtSFw",
             authDomain: "taikhoantietkiem.firebaseapp.com",
@@ -29,15 +31,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Đưa các hàm và biến Firebase ra global window để code giao diện gọi được
+        // Đưa ra biến toàn cục để giao diện gọi
         window.db = db;
         window.dbRef = ref;
         window.dbSet = set;
         window.dbGet = get;
-        window.dbChild = child;
-        window.dbRemove = remove;
         
-        // Sau khi Firebase sẵn sàng, chạy hàm kiểm tra trạng thái
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
@@ -47,7 +46,6 @@
         .history-item:hover { background-color: #f1f3f5; }
         .image-card img { height: 150px; object-fit: cover; }
     </style>
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -95,30 +93,6 @@
                                 <span id="authToggleText" class="text-muted">Chưa có tài khoản?</span>
                                 <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" class="text-decoration-none fw-bold">Đăng ký ngay</a>
                             </div>
-                            <a href="#" onclick="showForgotPassword(event)" class="text-decoration-none small text-danger">Quên mật khẩu?</a>
-                        </div>
-                    </form>
-
-                    <!-- Form Quên Mật Khẩu -->
-                    <form id="forgotForm" class="d-none" onsubmit="handleForgotPassword(event)">
-                        <p class="text-muted small text-center mb-3">Nhập tên đăng nhập và Gmail để thiết lập lại mật khẩu.</p>
-                        <div class="mb-3">
-                            <label class="form-label">Tên đăng nhập:</label>
-                            <input type="text" class="form-control" id="forgotUsername" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Gmail đã đăng ký:</label>
-                            <input type="email" class="form-control" id="forgotEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Mật khẩu mới:</label>
-                            <input type="password" class="form-control" id="newPassword" required>
-                        </div>
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" class="btn btn-warning fw-bold py-2 text-white">Xác Nhận Đổi Mật Khẩu</button>
-                        </div>
-                        <div class="text-center">
-                            <a href="#" onclick="backToLogin(event)" class="text-decoration-none small fw-bold">Quay lại đăng nhập</a>
                         </div>
                     </form>
                 </div>
@@ -212,15 +186,8 @@
                     </div>
                 </div>
 
-                <!-- TAB 4: Kho ảnh & Thùng rác -->
+                <!-- TAB 4: Kho ảnh -->
                 <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionImages">
-                    <div class="card shadow-sm p-3 border-0 rounded-4 mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-secondary">Dung lượng lưu trữ đám mây</span>
-                            <span id="storageText" class="small text-muted">0 MB / 2048 MB</span>
-                        </div>
-                        <div class="progress mb-2" style="height: 10px;"><div id="storageProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div></div>
-                    </div>
                     <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
                         <h5 class="mb-3 text-primary">Tải Ảnh Lên Kho</h5>
                         <input type="file" class="form-control mb-3" id="imageInput" accept="image/*">
@@ -231,11 +198,6 @@
                         <div class="row" id="imageListContainer"></div>
                         <p id="emptyImageMsg" class="text-center text-muted mt-3 d-none">Chưa có ảnh nào.</p>
                     </div>
-                    <div class="card shadow-sm p-4 border-0 rounded-4 border-danger">
-                        <h5 class="mb-3 text-danger">Thùng Rác</h5>
-                        <div class="row" id="trashListContainer"></div>
-                        <p id="emptyTrashMsg" class="text-center text-muted mt-3 d-none">Thùng rác trống.</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -243,7 +205,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Logic JavaScript chính kết nối Firebase -->
+    <!-- Logic Xử Lý Giao Diện & Firebase -->
     <script>
         const provinces = ["An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước", "Bình Thuận", "Cà Mau", "Cần Thơ", "Cao Bằng", "Đà Nẵng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", "Hải Dương", "Hải Phòng", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "TP. Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"];
 
@@ -261,7 +223,6 @@
         let currentUser = localStorage.getItem('currentUser') || null;
         let transactions = [];
         let userImages = [];
-        let trashImages = [];
 
         window.addEventListener('firebase-ready', () => {
             checkAuthState();
@@ -281,18 +242,14 @@
         }
 
         async function loadUserDataFromFirebase() {
-            const dbRef = window.dbRef;
-            const dbGet = window.dbGet;
-            const snapshot = await dbGet(dbRef(window.db, 'users/' + currentUser));
+            const snapshot = await window.dbGet(window.dbRef(window.db, 'users/' + currentUser));
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 transactions = data.transactions || [];
                 userImages = data.images || [];
-                trashImages = data.trash || [];
             } else {
                 transactions = [];
                 userImages = [];
-                trashImages = [];
             }
             updateUI();
             loadProfileData();
@@ -301,59 +258,58 @@
 
         async function syncDataToFirebase() {
             if (!currentUser) return;
-            const dbSet = window.dbSet;
-            const dbRef = window.dbRef;
-            await dbSet(dbRef(window.db, 'users/' + currentUser), {
+            await window.dbSet(window.dbRef(window.db, 'users/' + currentUser), {
                 transactions: transactions,
-                images: userImages,
-                trash: trashImages
+                images: userImages
             });
         }
 
         async function handleAuth(event) {
             event.preventDefault();
+            document.getElementById('authErrorMsg').classList.add('d-none');
+            document.getElementById('authSuccessMsg').classList.add('d-none');
+
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('userPassword').value;
 
-            const dbGet = window.dbGet;
-            const dbRef = window.dbRef;
-            const userSnapshot = await dbGet(dbRef(window.db, 'accounts/' + username));
+            try {
+                const userSnapshot = await window.dbGet(window.dbRef(window.db, 'accounts/' + username));
 
-            if (!isLoginMode) {
-                if (userSnapshot.exists()) {
-                    showError("Tài khoản đã tồn tại trên hệ thống đám mây!");
-                    return;
-                }
-                const email = document.getElementById('userEmail').value.trim();
-                const dbSet = window.dbSet;
-                
-                await dbSet(dbRef(window.db, 'accounts/' + username), { password, email });
-                await dbSet(dbRef(window.db, 'profiles/' + username), {
-                    username, dob: "", hometown: "", address: "", email, bankNumber: "", joinDate: new Date().toLocaleDateString('vi-VN')
-                });
+                if (!isLoginMode) {
+                    if (userSnapshot.exists()) {
+                        showError("Tài khoản đã tồn tại trên hệ thống đám mây!");
+                        return;
+                    }
+                    const email = document.getElementById('userEmail').value.trim();
+                    
+                    await window.dbSet(window.dbRef(window.db, 'accounts/' + username), { password, email });
+                    await window.dbSet(window.dbRef(window.db, 'profiles/' + username), {
+                        username, dob: "", hometown: "", address: "", email, bankNumber: "", joinDate: new Date().toLocaleDateString('vi-VN')
+                    });
 
-                showSuccess("Đăng ký thành công! Hãy đăng nhập.");
-                toggleAuthMode();
-            } else {
-                if (!userSnapshot.exists()) {
-                    showError("Tài khoản không tồn tại!");
-                    return;
+                    showSuccess("Đăng ký thành công! Hãy chuyển sang đăng nhập.");
+                    toggleAuthMode();
+                } else {
+                    if (!userSnapshot.exists()) {
+                        showError("Tài khoản không tồn tại!");
+                        return;
+                    }
+                    if (userSnapshot.val().password !== password) {
+                        showError("Sai mật khẩu!");
+                        return;
+                    }
+                    currentUser = username;
+                    localStorage.setItem('currentUser', currentUser);
+                    checkAuthState();
                 }
-                if (userSnapshot.val().password !== password) {
-                    showError("Sai mật khẩu!");
-                    return;
-                }
-                currentUser = username;
-                localStorage.setItem('currentUser', currentUser);
-                checkAuthState();
+            } catch (err) {
+                showError("Lỗi kết nối Firebase: " + err.message);
             }
         }
 
         async function loadProfileData() {
             if (!currentUser) return;
-            const dbGet = window.dbGet;
-            const dbRef = window.dbRef;
-            const snapshot = await dbGet(dbRef(window.db, 'profiles/' + currentUser));
+            const snapshot = await window.dbGet(window.dbRef(window.db, 'profiles/' + currentUser));
             if (snapshot.exists()) {
                 const info = snapshot.val();
                 document.getElementById('pfUsername').value = info.username || currentUser;
@@ -376,9 +332,7 @@
                 email: document.getElementById('pfEmail').value.trim(),
                 bankNumber: document.getElementById('pfBankNumber').value.trim()
             };
-            const dbSet = window.dbSet;
-            const dbRef = window.dbRef;
-            await dbSet(dbRef(window.db, 'profiles/' + currentUser), profileData);
+            await window.dbSet(window.dbRef(window.db, 'profiles/' + currentUser), profileData);
             alert("Lưu thông tin cá nhân lên Cloud thành công!");
             disableProfileEditUI();
         }
@@ -447,7 +401,7 @@
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
-                userImages.push({ id: Date.now(), name: file.name, data: e.target.result, size: file.size / (1024*1024) });
+                userImages.push({ id: Date.now(), name: file.name, data: e.target.result });
                 fileInput.value = '';
                 updateImageUI();
             };
@@ -460,18 +414,15 @@
             userImages.forEach(img => {
                 const col = document.createElement('div');
                 col.className = 'col-md-4 mb-3';
-                col.innerHTML = `<div class="card h-100 shadow-sm image-card"><img src="${img.data}" class="card-img-top"><div class="card-body p-2"><p class="small text-truncate">${img.name}</p><button onclick="moveToTrash(${img.id})" class="btn btn-outline-danger btn-sm w-100">Xóa</button></div></div>`;
+                col.innerHTML = `<div class="card h-100 shadow-sm image-card"><img src="${img.data}" class="card-img-top"><div class="card-body p-2"><p class="small text-truncate">${img.name}</p><button onclick="deleteImage(${img.id})" class="btn btn-outline-danger btn-sm w-100">Xóa</button></div></div>`;
                 imageListContainer.appendChild(col);
             });
             syncDataToFirebase();
         }
 
-        function moveToTrash(id) {
-            const idx = userImages.findIndex(i => i.id == id);
-            if (idx !== -1) {
-                trashImages.push(userImages.splice(idx, 1)[0]);
-                updateImageUI();
-            }
+        function deleteImage(id) {
+            userImages = userImages.filter(i => i.id != id);
+            updateImageUI();
         }
 
         function logout() {
@@ -495,7 +446,7 @@
             document.getElementById('authTitle').textContent = isLoginMode ? "Đăng Nhập Tài Khoản" : "Đăng Ký Tài Khoản Mới";
             document.getElementById('authActionBtn').innerHTML = isLoginMode ? '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập' : '<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký';
         }
-        function showError(msg) { const el = document.getElementById('authErrorMsg'); el.textContent = msg; el.classList.remove('d-none'); }
+        function showError(msg) { const el = document.getElementById('authErrorMsg'); el.textContent = msg; el.classList.res('d-none') && el.classList.remove('d-none'); el.classList.remove('d-none'); }
         function showSuccess(msg) { const el = document.getElementById('authSuccessMsg'); el.textContent = msg; el.classList.remove('d-none'); }
         function enableProfileEdit() { document.querySelectorAll('.profile-input').forEach(i => i.removeAttribute('disabled')); document.getElementById('profileSaveContainer').classList.remove('d-none'); }
         function disableProfileEditUI() { document.querySelectorAll('.profile-input').forEach(i => i.setAttribute('disabled', 'true')); document.getElementById('profileSaveContainer').classList.add('d-none'); }
