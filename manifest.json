@@ -1,6 +1,6 @@
 {
-  "name": "Heo Đất Tiết Kiệm",
-  "short_name": "Heo Đất",
+  "name": "Quản lý dòng tiền",
+  "short_name": "Quản lý chi tiêu",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8f9fa",
