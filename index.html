@@ -11,12 +11,11 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Firebase SDK qua CDN (Chạy chuẩn 100% trên file HTML thuần) -->
+    <!-- Firebase SDK qua CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Cấu hình Firebase lấy từ Project của bạn
         const firebaseConfig = {
             apiKey: "AIzaSyA2iYVmflGIo0OH5kKXmmooEcDPJtjtSFw",
             authDomain: "taikhoantietkiem.firebaseapp.com",
@@ -27,11 +26,9 @@
             appId: "1:531984221890:web:4efe30bffcb3306bfd9d5b"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Đưa ra biến toàn cục để giao diện gọi
         window.db = db;
         window.dbRef = ref;
         window.dbSet = set;
@@ -446,7 +443,7 @@
             document.getElementById('authTitle').textContent = isLoginMode ? "Đăng Nhập Tài Khoản" : "Đăng Ký Tài Khoản Mới";
             document.getElementById('authActionBtn').innerHTML = isLoginMode ? '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập' : '<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký';
         }
-        function showError(msg) { const el = document.getElementById('authErrorMsg'); el.textContent = msg; el.classList.res('d-none') && el.classList.remove('d-none'); el.classList.remove('d-none'); }
+        function showError(msg) { const el = document.getElementById('authErrorMsg'); el.textContent = msg; el.classList.remove('d-none'); }
         function showSuccess(msg) { const el = document.getElementById('authSuccessMsg'); el.textContent = msg; el.classList.remove('d-none'); }
         function enableProfileEdit() { document.querySelectorAll('.profile-input').forEach(i => i.removeAttribute('disabled')); document.getElementById('profileSaveContainer').classList.remove('d-none'); }
         function disableProfileEditUI() { document.querySelectorAll('.profile-input').forEach(i => i.setAttribute('disabled', 'true')); document.getElementById('profileSaveContainer').classList.add('d-none'); }
