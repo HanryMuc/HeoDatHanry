@@ -1,14 +1,14 @@
 {
   "name": "Heo Đất Tiết Kiệm",
-  "short_name": "Ống Heo",
-  "start_url": "index.html",
+  "short_name": "Heo Đất",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#fce4ec",
-  "theme_color": "#ff6b8b",
+  "background_color": "#f8f9fa",
+  "theme_color": "#0d6efd",
   "icons": [
     {
-      "src": "https://img.icons8.com/color/192/0/piggy-bank.png",
-      "sizes": "192x192",
+      "src": "https://cdn-icons-png.flaticon.com/512/1999/1999625.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
