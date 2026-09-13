@@ -51,7 +51,7 @@
                     <form id="authForm" onsubmit="handleAuth(event)">
                         <div class="mb-3">
                             <label for="username" class="form-label">Tên đăng nhập:</label>
-                            <input type="text" class="form-control" id="username" placeholder="vd: dinhduongnam" required>
+                            <input type="text" class="form-control" id="username" placeholder="vd: dinhquocnam" required>
                             <div class="form-text text-muted small">Viết liền, không dấu, không ký tự đặc biệt.</div>
                         </div>
                         <div class="mb-3">
@@ -178,7 +178,7 @@
         // Kiểm tra trạng thái đăng nhập khi load trang
         function checkAuthState() {
             currentUser = localStorage.getItem('currentUser') || null;
-            document.getElementById('authErrorMsg').classList.add('d-none'); // ẩn lỗi cũ
+            document.getElementById('authErrorMsg').classList.add('d-none');
             if (currentUser) {
                 document.getElementById('authSection').classList.add('d-none');
                 document.getElementById('appSection').classList.remove('d-none');
@@ -221,14 +221,13 @@
             errorEl.classList.remove('d-none');
         }
 
-        // Xử lý sự kiện Submit Form Đăng Nhập / Đăng Ký với chuẩn validation mới
+        // Xử lý xác thực Đăng Ký / Đăng Nhập
         function handleAuth(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('username').value.trim();
             const passInput = document.getElementById('userPassword').value;
 
             // 1. Kiểm tra Tên đăng nhập: viết liền, không dấu, không ký tự đặc biệt
-            // Regex chỉ cho phép chữ cái không dấu (a-z) và chữ số (0-9)
             const usernameRegex = /^[a-z0-9]+$/;
             if (!usernameRegex.test(usernameInput)) {
                 showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt hoặc khoảng trắng!");
@@ -253,19 +252,45 @@
                 return;
             }
 
-            // Nếu vượt qua tất cả kiểm tra
-            document.getElementById('authErrorMsg').classList.add('d-none');
-            currentUser = usernameInput;
-            localStorage.setItem('currentUser', currentUser);
-            
-            if (isLoginMode) {
-                alert('Đăng nhập thành công!');
-            } else {
-                alert('Đăng ký tài khoản thành công!');
-            }
+            // Lấy danh sách tài khoản đã đăng ký từ localStorage (hoặc tạo mới nếu chưa có)
+            let accounts = JSON.parse(localStorage.getItem('saved_accounts')) || {};
 
-            document.getElementById('authForm').reset();
-            checkAuthState();
+            if (!isLoginMode) {
+                // --- XỬ LÝ ĐĂNG KÝ ---
+                if (accounts[usernameInput]) {
+                    showError("Tên đăng nhập này đã tồn tại! Vui lòng chọn tên khác hoặc chuyển sang Đăng Nhập.");
+                    return;
+                }
+                // Lưu mật khẩu của tài khoản mới
+                accounts[usernameInput] = passInput;
+                localStorage.setItem('saved_accounts', JSON.stringify(accounts));
+
+                alert('Đăng ký tài khoản thành công! Bây giờ bạn có thể đăng nhập.');
+                // Chuyển tự động sang chế độ đăng nhập cho tiện
+                toggleAuthMode(event);
+                document.getElementById('authForm').reset();
+                return;
+            } else {
+                // --- XỬ LÝ ĐĂNG NHẬP ---
+                if (!accounts[usernameInput]) {
+                    showError("Tên đăng nhập chưa được đăng ký! Vui lòng bấm 'Đăng ký ngay' ở bên dưới.");
+                    return;
+                }
+                
+                if (accounts[usernameInput] !== passInput) {
+                    showError("Mật khẩu không chính xác! Vui lòng kiểm tra lại.");
+                    return;
+                }
+
+                // Đăng nhập thành công
+                document.getElementById('authErrorMsg').classList.add('d-none');
+                currentUser = usernameInput;
+                localStorage.setItem('currentUser', currentUser);
+                
+                alert('Đăng nhập thành công!');
+                document.getElementById('authForm').reset();
+                checkAuthState();
+            }
         }
 
         // Đăng xuất
@@ -399,33 +424,6 @@
 
         // Khởi chạy khi tải trang
         checkAuthState();
-
-        // Xử lý sự kiện PWA Install
-        let deferredPrompt;
-        const installContainer = document.getElementById('installContainer');
-        const btnInstall = document.getElementById('btnInstall');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installContainer.classList.remove('d-none');
-        });
-
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                console.log('Người dùng đã chấp nhận cài đặt');
-            }
-            deferredPrompt = null;
-            installContainer.classList.add('d-none');
-        });
-
-        window.addEventListener('appinstalled', () => {
-            installContainer.classList.add('d-none');
-            alert('Ứng dụng đã được cài đặt thành công!');
-        });
     </script>
 </body>
 </html>
