@@ -25,15 +25,36 @@
         }
     </style>
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#0d6efd">
 </head>
 <body>
 
-    <div class="container py-5">
-        <h2 class="text-center mb-4 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Tiền Để Dành</h2>
+    <div class="container py-4">
+        <h2 class="text-center mb-3 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Tiền Để Dành</h2>
+
+        <!-- Nút tải ứng dụng PWA -->
+        <div id="installContainer" class="text-center mb-3 d-none">
+            <button id="btnInstall" class="btn btn-warning fw-bold text-dark px-4 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-download me-2"></i> Tải Ứng Dụng Về Máy
+            </button>
+        </div>
+
+        <!-- Thanh Menu chuyển đổi tab -->
+        <ul class="nav nav-pills justify-content-center mb-4 gap-2">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold px-4 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')">
+                    <i class="fa-solid fa-house me-1"></i> Giao Dịch
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Xem Lịch Sử
+                </button>
+            </li>
+        </ul>
 
         <div class="row justify-content-center">
-            <!-- Tổng số tiền -->
+            <!-- Tổng số tiền (Luôn hiển thị ở trên cho trực quan) -->
             <div class="col-md-8 mb-4">
                 <div class="card card-summary shadow-sm p-4 text-center">
                     <h5>Số Tiền Tiết Kiệm Hiện Tại</h5>
@@ -42,8 +63,8 @@
                 </div>
             </div>
 
-            <!-- Form Thêm / Rút tiền -->
-            <div class="col-md-8 mb-4">
+            <!-- TAB 1: Khu vực Nhập Tiền -->
+            <div class="col-md-8 mb-4 tab-content-item" id="sectionHome">
                 <div class="card shadow-sm p-4 border-0 rounded-4">
                     <h5 class="mb-3">Thực Hiện Giao Dịch</h5>
                     <form id="moneyForm">
@@ -70,8 +91,8 @@
                 </div>
             </div>
 
-            <!-- Lịch sử giao dịch -->
-            <div class="col-md-8">
+            <!-- TAB 2: Khu vực Lịch Sử Riêng Biệt -->
+            <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionHistory">
                 <div class="card shadow-sm p-4 border-0 rounded-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0">Lịch Sử Giao Dịch</h5>
@@ -100,36 +121,49 @@
 
     <!-- JavaScript xử lý -->
     <script>
-        // Lấy dữ liệu từ LocalStorage hoặc khởi tạo mảng trống
         let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
 
-        // Format tiền tệ Việt Nam
         function formatCurrency(number) {
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
         }
 
-        // Cập nhật giao diện tổng tiền và bảng lịch sử
+        // Chuyển đổi giữa các tab Menu
+        function switchTab(tabName) {
+            const homeSec = document.getElementById('sectionHome');
+            const historySec = document.getElementById('sectionHistory');
+            const homeBtn = document.getElementById('tabHomeBtn');
+            const historyBtn = document.getElementById('tabHistoryBtn');
+
+            if (tabName === 'home') {
+                homeSec.classList.remove('d-none');
+                historySec.classList.add('d-none');
+                homeBtn.className = 'nav-link active fw-bold px-4 rounded-pill shadow-sm';
+                historyBtn.className = 'nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border';
+            } else {
+                homeSec.classList.add('d-none');
+                historySec.classList.remove('d-none');
+                historyBtn.className = 'nav-link active fw-bold px-4 rounded-pill shadow-sm';
+                homeBtn.className = 'nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border';
+            }
+        }
+
         function updateUI() {
             const totalBalanceEl = document.getElementById('totalBalance');
             const historyListEl = document.getElementById('historyList');
             const emptyMessageEl = document.getElementById('emptyMessage');
 
-            // Tính tổng tiền
             let total = transactions.reduce((acc, item) => {
                 return item.type === 'deposit' ? acc + item.amount : acc - item.amount;
             }, 0);
 
             totalBalanceEl.textContent = formatCurrency(total);
 
-            // Render lịch sử
             historyListEl.innerHTML = '';
             if (transactions.length === 0) {
                 emptyMessageEl.classList.remove('d-none');
             } else {
                 emptyMessageEl.classList.add('d-none');
-                // Sắp xếp lịch sử mới nhất lên đầu
                 [...transactions].reverse().forEach((item, index) => {
-                    // Do đảo ngược mảng nên tính lại index gốc để xóa đúng phần tử
                     const originalIndex = transactions.length - 1 - index;
                     
                     const row = document.createElement('tr');
@@ -151,25 +185,21 @@
                 });
             }
 
-            // Lưu vào LocalStorage
             localStorage.setItem('transactions', JSON.stringify(transactions));
         }
 
-        // Hàm xử lý Thêm hoặc Rút tiền
         function addMoney(type) {
             const amountInput = document.getElementById('amount');
             const noteInput = document.getElementById('note');
             
             const amount = parseFloat(amountInput.value);
 
-            // Kiểm tra điều kiện tối thiểu 10k
             if (isNaN(amount) || amount < 10000) {
                 alert('Vui lòng nhập số tiền hợp lệ (Tối thiểu 10.000 đ)!');
                 amountInput.focus();
                 return;
             }
 
-            // Nếu là rút tiền, kiểm tra xem số dư có đủ không
             if (type === 'withdraw') {
                 let currentTotal = transactions.reduce((acc, item) => {
                     return item.type === 'deposit' ? acc + item.amount : acc - item.amount;
@@ -181,30 +211,25 @@
                 }
             }
 
-            // Lấy thời gian hiện tại
             const now = new Date();
             const dateStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN');
 
-            // Tạo đối tượng giao dịch mới
             const newTransaction = {
-                type: type, // 'deposit' hoặc 'withdraw'
+                type: type,
                 amount: amount,
                 note: noteInput.value.trim(),
                 date: dateStr
             };
 
-            // Thêm vào mảng
             transactions.push(newTransaction);
-
-            // Reset form
             amountInput.value = '';
             noteInput.value = '';
-
-            // Cập nhật lại giao diện
             updateUI();
+            
+            // Thêm xong tự động chuyển sang tab lịch sử để xem luôn cho tiện
+            switchTab('history');
         }
 
-        // Xóa 1 dòng lịch sử
         function deleteItem(index) {
             if (confirm('Bạn có chắc muốn xóa giao dịch này không?')) {
                 transactions.splice(index, 1);
@@ -212,7 +237,6 @@
             }
         }
 
-        // Xóa toàn bộ lịch sử
         function clearHistory() {
             if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử và làm lại từ đầu không?')) {
                 transactions = [];
@@ -220,8 +244,34 @@
             }
         }
 
-        // Chạy lần đầu khi load trang
         updateUI();
+
+        // Xử lý sự kiện hiển thị nút Tải ứng dụng (PWA Install)
+        let deferredPrompt;
+        const installContainer = document.getElementById('installContainer');
+        const btnInstall = document.getElementById('btnInstall');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installContainer.classList.remove('d-none');
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('Người dùng đã chấp nhận cài đặt');
+            }
+            deferredPrompt = null;
+            installContainer.classList.add('d-none');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installContainer.classList.add('d-none');
+            alert('Ứng dụng đã được cài đặt thành công!');
+        });
     </script>
 </body>
 </html>
