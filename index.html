@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heo Đất Tiết Kiệm Thông Minh</title>
+    <title>Heo Đất Tiết Kiệm - Quản Lý Tài Chính & Kho Ảnh</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -17,239 +17,676 @@
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .history-item:hover {
-            background-color: #f1f3f5;
+        .gallery-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-img:hover {
+            transform: scale(1.03);
+        }
+        .storage-bar {
+            height: 10px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container py-5">
-        <!-- Khu vực Đăng nhập / Bắt đầu -->
-        <div id="auth-section" class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card piggy-card p-4">
-                    <h3 class="text-center text-primary mb-4"><i class="fa-solid fa-piggy-bank me-2"></i>Heo Đất Tiết Kiệm</h3>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Tên tài khoản</label>
-                        <input type="text" class="form-control" id="username" placeholder="Nhập tên của bạn...">
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button onclick="handleLogin()" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket me-1"></i> Đăng nhập / Bắt đầu</button>
-                    </div>
+    <!-- KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="authSection" class="container mt-5" style="max-width: 450px;">
+        <div class="card piggy-card p-4">
+            <h3 class="text-center text-danger mb-4"><i class="fa-solid fa-piggy-bank"></i> Heo Đất Tiết Kiệm</h3>
+            <div class="mb-3">
+                <label class="form-label">Tên tài khoản</label>
+                <input type="text" id="usernameInput" class="form-control" placeholder="Nhập tên tài khoản...">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" id="passwordInput" class="form-control" placeholder="Nhập mật khẩu...">
+            </div>
+            <div class="d-grid gap-2">
+                <button onclick="handleLogin()" class="btn btn-danger">Đăng Nhập</button>
+                <button onclick="handleRegister()" class="btn btn-outline-secondary">Đăng Ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHU VỰC ỨNG DỤNG CHÍNH -->
+    <div id="appSection" class="container py-4" style="display: none;">
+        <!-- Thanh điều hướng trên cùng -->
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 piggy-card">
+            <h4 class="m-0 text-danger"><i class="fa-solid fa-piggy-bank"></i> Heo Đất - Chào <span id="displayName"></span></h4>
+            <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+        </div>
+
+        <!-- Thống kê tổng số dư -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card piggy-card bg-danger text-white p-4 text-center">
+                    <h5>Tổng Tiền Tiết Kiệm Hiện Tại</h5>
+                    <h1 id="totalBalance" class="display-4 fw-bold">0 đ</h1>
                 </div>
             </div>
         </div>
 
-        <!-- Khu vực Ứng dụng chính (Ẩn khi chưa đăng nhập) -->
-        <div id="app-section" class="d-none">
-            <!-- Header chào hỏi & Đăng xuất -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4>Xin chào, <span id="user-display" class="text-primary fw-bold"></span>! 👋</h4>
-                <button onclick="handleLogout()" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất</button>
+        <!-- Tabs chức năng -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active text-danger" id="trans-tab" data-bs-toggle="tab" data-bs-target="#transPane" type="button">Giao Dịch</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-danger" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#galleryPane" type="button">Khoảnh Khắc 📸</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-danger" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgradePane" type="button"><i class="fa-solid fa-crown text-warning"></i> Nâng Cấp Dung Lượng</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-danger" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profilePane" type="button">Cá Nhân</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- PANE 1: GIAO DỊCH -->
+            <div class="tab-pane fade show active" id="transPane" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card piggy-card p-3">
+                            <h5 class="mb-3">Thao Tác</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Số tiền (VNĐ)</label>
+                                <input type="number" id="amount" class="form-control" placeholder="VD: 50000">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" id="note" class="form-control" placeholder="VD: Tiền ống heo ngày...">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button onclick="addMoney('deposit')" class="btn btn-success w-50"><i class="fa-solid fa-plus"></i> Cho heo ăn</button>
+                                <button onclick="addMoney('withdraw')" class="btn btn-warning w-50 text-white"><i class="fa-solid fa-minus"></i> Rút tiền</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card piggy-card p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="m-0">Lịch Sử Giao Dịch</h5>
+                                <button onclick="clearHistory()" class="btn btn-outline-danger btn-sm">Xóa lịch sử</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Ghi chú</th>
+                                            <th class="text-end">Số tiền</th>
+                                            <th class="text-center">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyList"></tbody>
+                                </table>
+                                <p id="emptyMessage" class="text-center text-muted d-none py-3">Chưa có giao dịch nào!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="row">
-                <!-- Cột trái: Số dư & Form giao dịch -->
-                <div class="col-md-4 mb-4">
-                    <!-- Thẻ hiển thị tổng tiền -->
-                    <div class="card piggy-card bg-primary text-white p-4 mb-4 text-center">
-                        <h5 class="card-title mb-2"><i class="fa-solid fa-wallet me-2"></i>Tổng số dư trong heo</h5>
-                        <h2 id="total-balance" class="fw-bold mb-0">0 đ</h2>
+            <!-- PANE 2: KHOẢNH KHẮC & THÙNG RÁC -->
+            <div class="tab-pane fade" id="galleryPane" role="tabpanel">
+                <!-- Thanh hiển thị dung lượng -->
+                <div class="card piggy-card p-3 mb-4 bg-light">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold"><i class="fa-solid fa-hard-drive"></i> Dung lượng lưu trữ ảnh</span>
+                        <span id="storageText">0 MB / 2 GB</span>
                     </div>
+                    <div class="progress storage-bar">
+                        <div id="storageProgressBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
 
-                    <!-- Form Thêm/Rút tiền -->
-                    <div class="card piggy-card p-4">
-                        <h5 class="mb-3"><i class="fa-solid fa-coins me-2"></i>Giao dịch</h5>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Số tiền (VNĐ)</label>
-                            <input type="number" class="form-control" id="amount" placeholder="VD: 50000">
+                <div class="card piggy-card p-4 mb-4">
+                    <h5 class="mb-3">Thêm Ảnh Kỷ Niệm Heo Đất</h5>
+                    <div class="row align-items-end">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label">Chọn ảnh hoặc chụp ảnh từ thiết bị</label>
+                            <input type="file" id="imageInput" accept="image/*" capture="environment" class="form-control">
                         </div>
-                        <div class="mb-3">
-                            <label for="note" class="form-label">Ghi chú</label>
-                            <input type="text" class="form-control" id="note" placeholder="VD: Tiền ống heo ăn sáng...">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label">Mô tả ảnh</label>
+                            <input type="text" id="imageCaption" class="form-control" placeholder="VD: Đập heo đất ngày...">
                         </div>
-                        <div class="d-grid gap-2">
-                            <button onclick="addMoney('deposit')" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i> Bỏ ống heo (Nạp)</button>
-                            <button onclick="addMoney('withdraw')" class="btn btn-danger"><i class="fa-solid fa-minus me-1"></i> Đập heo (Rút)</button>
+                        <div class="col-md-2">
+                            <button onclick="uploadImage()" class="btn btn-danger w-100"><i class="fa-solid fa-upload"></i> Tải lên</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cột phải: Lịch sử giao dịch -->
-                <div class="col-md-8">
-                    <div class="card piggy-card p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử giao dịch</h5>
-                            <button onclick="clearHistory()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash-can me-1"></i> Xóa tất cả</button>
-                        </div>
+                <!-- Danh sách ảnh hiển thị -->
+                <div class="card piggy-card p-4 mb-4">
+                    <h5 class="mb-3">Album Ảnh Của Bạn</h5>
+                    <div class="row" id="imageGalleryGrid"></div>
+                    <p id="emptyGalleryMsg" class="text-center text-muted d-none py-3">Chưa có hình ảnh nào được lưu trữ!</p>
+                </div>
 
-                        <!-- Danh sách giao dịch -->
-                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-hover align-middle">
-                                <tbody id="history-list">
-                                    <!-- Dữ liệu được render bằng JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="empty-message" class="text-center text-muted py-4 d-none">
-                            <i class="fa-solid fa-box-open fa-2x mb-2"></i>
-                            <p>Chưa có giao dịch nào được ghi nhận.</p>
+                <!-- Thùng rác ảnh -->
+                <div class="card piggy-card p-4 border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-secondary m-0"><i class="fa-solid fa-trash-can"></i> Thùng Rác (Lưu trữ 30 ngày)</h5>
+                        <button onclick="emptyTrash()" class="btn btn-outline-secondary btn-sm">Dọn sạch thùng rác</button>
+                    </div>
+                    <div class="row" id="trashGalleryGrid"></div>
+                    <p id="emptyTrashMsg" class="text-center text-muted d-none py-3">Thùng rác trống!</p>
+                </div>
+            </div>
+
+            <!-- PANE 3: NÂNG CẤP DUNG LƯỢNG -->
+            <div class="tab-pane fade" id="upgradePane" role="tabpanel">
+                <div class="card piggy-card p-4" style="max-width: 650px; margin: 0 auto;">
+                    <h4 class="text-center text-danger mb-3"><i class="fa-solid fa-crown"></i> Nâng Cấp Gói Dung Lượng</h4>
+                    <p class="text-center text-muted">Mặc định tài khoản có sẵn <strong>2 GB</strong>. Nạp tiền để mở rộng không gian lưu trữ ảnh kỷ niệm!</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Quy đổi:</strong> Cứ mỗi <strong>10.000 VNĐ</strong> sẽ nhận được thêm <strong>1 GB</strong> dung lượng lưu trữ (Tương đương 100.000đ = 10GB).
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn gói nạp nhanh:</label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <button onclick="selectPackage(50000)" class="btn btn-outline-danger w-100">50.000 đ<br><small>+5 GB</small></button>
+                            </div>
+                            <div class="col-4">
+                                <button onclick="selectPackage(100000)" class="btn btn-outline-danger w-100">100.000 đ<br><small>+10 GB</small></button>
+                            </div>
+                            <div class="col-4">
+                                <button onclick="selectPackage(200000)" class="btn btn-outline-danger w-100">200.000 đ<br><small>+20 GB</small></button>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Hoặc nhập số tiền tùy ý (VNĐ):</label>
+                        <input type="number" id="customMoney" class="form-control" placeholder="Nhập số tiền..." oninput="calculateUpgradeStorage()">
+                    </div>
+
+                    <div class="card bg-light p-3 mb-3 text-center">
+                        <h6 class="text-muted">Dung lượng sẽ nhận được thêm:</h6>
+                        <h2 id="previewGB" class="text-success fw-bold">0 GB</h2>
+                    </div>
+
+                    <button onclick="confirmUpgrade()" class="btn btn-danger w-100 py-2 fw-bold">Xác Nhận Nâng Cấp Ngay</button>
+                </div>
+            </div>
+
+            <!-- PANE 4: THÔNG TIN CÁ NHÂN -->
+            <div class="tab-pane fade" id="profilePane" role="tabpanel">
+                <div class="card piggy-card p-4" style="max-width: 600px; margin: 0 auto;">
+                    <h5 class="mb-3">Hồ Sơ Tài Khoản</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Tên tài khoản</label>
+                        <input type="text" id="profileUser" class="form-control" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại / Ngân hàng liên kết</label>
+                        <input type="text" id="profileBank" class="form-control" placeholder="Nhập số tài khoản/momo...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="profileEmail" class="form-control" placeholder="Nhập email của bạn...">
+                    </div>
+                    <button onclick="saveProfile()" class="btn btn-danger">Lưu Thông Tin</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentUser = localStorage.getItem('current_user') || '';
-        let transactions = [];
+    <!-- MODAL XEM CHI TIẾT ẢNH & TẢI VỀ -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalImageCaption">Chi tiết ảnh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center bg-dark">
+                    <img id="modalImageSrc" src="" class="img-fluid" style="max-height: 70vh; object-fit: contain;" alt="Full image">
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <small id="modalImageTime" class="text-muted"></small>
+                    <a id="downloadBtn" href="#" download="ky-niem-heo-dat.jpg" class="btn btn-success"><i class="fa-solid fa-download"></i> Tải ảnh về máy</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Định dạng tiền tệ VNĐ
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Cấu hình Firebase của bạn
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentUser = localStorage.getItem('piggy_current_user') || null;
+        let transactions = [];
+        let imagesList = [];
+        let trashList = [];
+        let extraStorageGB = 0; // Dung lượng bổ sung thêm (GB)
+        let profileData = {};
+
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
         }
 
-        // Kiểm tra trạng thái đăng nhập khi load trang
         function checkAuthState() {
             if (currentUser) {
-                document.getElementById('auth-section').classList.add('d-none');
-                document.getElementById('app-section').classList.remove('d-none');
-                document.getElementById('user-display').innerText = currentUser;
-                
-                // Tải dữ liệu giao dịch của user này
-                const savedData = localStorage.getItem('transactions_' + currentUser);
-                transactions = savedData ? JSON.parse(savedData) : [];
-                updateUI();
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('appSection').style.display = 'block';
+                document.getElementById('displayName').textContent = currentUser;
+                document.getElementById('profileUser').value = currentUser;
+                loadDataFromFirebase();
             } else {
-                document.getElementById('auth-section').classList.remove('d-none');
-                document.getElementById('app-section').classList.add('d-none');
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('appSection').style.display = 'none';
             }
         }
 
-        // Xử lý đăng nhập
-        function handleLogin() {
-            const usernameInput = document.getElementById('username');
-            const name = usernameInput.value.trim();
-            if (!name) {
-                alert('Vui lòng nhập tên tài khoản của bạn!');
-                usernameInput.focus();
+        function handleRegister() {
+            const user = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+            if (!user || !pass) {
+                alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!");
                 return;
             }
-            currentUser = name;
-            localStorage.setItem('current_user', currentUser);
-            usernameInput.value = '';
-            checkAuthState();
+
+            db.ref('users/' + user).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("Tài khoản đã tồn tại!");
+                } else {
+                    db.ref('users/' + user).set({
+                        password: pass,
+                        transactions: [],
+                        images: [],
+                        trash: [],
+                        extraStorageGB: 0,
+                        profile: { bank: '', email: '' }
+                    }, (error) => {
+                        if (!error) alert("Đăng ký thành công!");
+                    });
+                }
+            });
         }
 
-        // Đăng xuất
+        function handleLogin() {
+            const user = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+            db.ref('users/' + user).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.password === pass) {
+                    currentUser = user;
+                    localStorage.setItem('piggy_current_user', user);
+                    checkAuthState();
+                } else {
+                    alert("Sai tài khoản hoặc mật khẩu!");
+                }
+            });
+        }
+
         function handleLogout() {
-            localStorage.removeItem('current_user');
-            currentUser = '';
-            transactions = [];
+            currentUser = null;
+            localStorage.removeItem('piggy_current_user');
             checkAuthState();
         }
 
-        // Cập nhật toàn bộ giao diện (Số dư & Bảng lịch sử)
-        function updateUI() {
-            // 1. Tính tổng số dư
-            let totalBalance = transactions.reduce((acc, item) => {
-                return item.type === 'deposit' ? acc + item.amount : acc - item.amount;
-            }, 0);
-            document.getElementById('total-balance').innerText = formatCurrency(totalBalance);
+        function loadDataFromFirebase() {
+            // Tự động dọn dẹp thùng rác quá 30 ngày mỗi lần đăng nhập
+            db.ref('users/' + currentUser).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    transactions = data.transactions || [];
+                    imagesList = data.images || [];
+                    trashList = data.trash || [];
+                    extraStorageGB = data.extraStorageGB || 0;
+                    profileData = data.profile || { bank: '', email: '' };
 
-            // 2. Hiển thị danh sách lịch sử
-            const historyListEl = document.getElementById('history-list');
-            const emptyMessageEl = document.getElementById('empty-message');
-            historyListEl.innerHTML = '';
+                    document.getElementById('profileBank').value = profileData.bank || '';
+                    document.getElementById('profileEmail').value = profileData.email || '';
 
-            if (transactions.length === 0) {
-                emptyMessageEl.classList.remove('d-none');
-            } else {
-                emptyMessageEl.classList.add('d-none');
-                [...transactions].reverse().forEach((item, index) => {
-                    const originalIndex = transactions.length - 1 - index;
-                    const row = document.createElement('tr');
-                    row.className = 'history-item';
-                    const isDeposit = item.type === 'deposit';
-                    const amountClass = isDeposit ? 'text-success fw-bold' : 'text-danger fw-bold';
-                    const amountSign = isDeposit ? '+' : '-';
+                    // Kiểm tra tự động xóa ảnh trong thùng rác sau 30 ngày
+                    cleanupTrash();
 
-                    row.innerHTML = `
-                        <td><small class="text-muted">${item.date}</small></td>
-                        <td>${item.note || (isDeposit ? 'Thêm tiền' : 'Rút tiền')}</td>
-                        <td class="text-end ${amountClass}">${amountSign}${formatCurrency(item.amount)}</td>
-                        <td class="text-center">
-                            <button onclick="deleteItem(${originalIndex})" class="btn btn-sm text-danger" title="Xóa giao dịch"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    `;
-                    historyListEl.appendChild(row);
-                });
-            }
-
-            // 3. Lưu vào LocalStorage theo từng user
-            localStorage.setItem('transactions_' + currentUser, JSON.stringify(transactions));
+                    updateUI();
+                    updateGalleryUI();
+                    updateTrashUI();
+                    updateStorageUsage();
+                }
+            });
         }
 
-        // Thêm hoặc Rút tiền
+        // --- GIAO DỊCH ---
         function addMoney(type) {
             const amountInput = document.getElementById('amount');
             const noteInput = document.getElementById('note');
             const amount = parseFloat(amountInput.value);
 
-            if (isNaN(amount) || amount <= 0) {
-                alert('Vui lòng nhập số tiền hợp lệ lớn hơn 0!');
-                amountInput.focus();
+            if (isNaN(amount) || amount < 1000) {
+                alert("Số tiền tối thiểu 1.000 đ!");
                 return;
             }
 
-            if (type === 'withdraw') {
-                let currentTotal = transactions.reduce((acc, item) => {
-                    return item.type === 'deposit' ? acc + item.amount : acc - item.amount;
-                }, 0);
-
-                if (amount > currentTotal) {
-                    alert('Số dư trong heo không đủ để rút số tiền này!');
-                    return;
-                }
+            let currentTotal = calculateTotalBalance();
+            if (type === 'withdraw' && amount > currentTotal) {
+                alert("Số dư không đủ rút!");
+                return;
             }
 
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN');
+            const finalAmount = type === 'deposit' ? amount : -amount;
+            const noteText = noteInput.value.trim() || (type === 'deposit' ? 'Cho heo ăn' : 'Rút tiền');
+            
+            transactions.unshift({
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                note: noteText,
+                amount: finalAmount,
+                type: type
+            });
 
-            const newTransaction = {
-                type: type,
-                amount: amount,
-                note: noteInput.value.trim(),
-                date: dateStr
-            };
-
-            transactions.push(newTransaction);
+            db.ref('users/' + currentUser + '/transactions').set(transactions);
             amountInput.value = '';
             noteInput.value = '';
-            updateUI();
         }
 
-        // Xóa 1 giao dịch
-        function deleteItem(index) {
-            if (confirm('Bạn có chắc muốn xóa giao dịch này không?')) {
-                transactions.splice(index, 1);
-                updateUI();
+        function calculateTotalBalance() {
+            return transactions.reduce((acc, curr) => acc + curr.amount, 0);
+        }
+
+        function deleteTransaction(id) {
+            if (confirm("Xóa giao dịch này?")) {
+                transactions = transactions.filter(t => t.id !== id);
+                db.ref('users/' + currentUser + '/transactions').set(transactions);
             }
         }
 
-        // Xóa toàn bộ lịch sử
         function clearHistory() {
-            if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử và làm lại từ đầu không?')) {
+            if (confirm("Xóa toàn bộ lịch sử?")) {
                 transactions = [];
-                updateUI();
+                db.ref('users/' + currentUser + '/transactions').set(transactions);
             }
         }
 
-        // Khởi chạy hệ thống khi tải trang
+        function updateUI() {
+            document.getElementById('totalBalance').textContent = formatCurrency(calculateTotalBalance());
+            const historyListEl = document.getElementById('historyList');
+            const emptyMsgEl = document.getElementById('emptyMessage');
+            historyListEl.innerHTML = '';
+
+            if (transactions.length === 0) {
+                emptyMsgEl.classList.remove('d-none');
+            } else {
+                emptyMsgEl.classList.add('d-none');
+                transactions.forEach(t => {
+                    const isDeposit = t.type === 'deposit';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><small class="text-muted">${t.time}</small></td>
+                        <td>${t.note}</td>
+                        <td class="text-end ${isDeposit ? 'text-success fw-bold' : 'text-danger fw-bold'}">${isDeposit ? '+' : ''}${formatCurrency(t.amount)}</td>
+                        <td class="text-center"><button onclick="deleteTransaction(${t.id})" class="btn btn-outline-danger btn-sm py-0 px-2"><i class="fa-solid fa-trash"></i></button></td>
+                    `;
+                    historyListEl.appendChild(tr);
+                });
+            }
+        }
+
+        // --- KHOẢNH KHẮC & DUNG LƯỢNG (2GB Mặc định) ---
+        function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const captionInput = document.getElementById('imageCaption');
+
+            if (fileInput.files.length === 0) {
+                alert("Vui lòng chọn ảnh!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const fileSizeMB = file.size / (1024 * 1024); // Kích thước MB
+
+            // Tính dung lượng hiện tại đang chiếm dụng
+            let currentUsedMB = calculateCurrentStorageMB();
+            let totalLimitMB = (2 + extraStorageGB) * 1024; // 2GB mặc định + extra
+
+            if (currentUsedMB + fileSizeMB > totalLimitMB) {
+                alert(`Dung lượng lưu trữ đã đầy (${(currentUsedMB/1024).toFixed(2)} GB / ${2 + extraStorageGB} GB). Vui lòng nâng cấp thêm dung lượng!`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagesList.unshift({
+                    id: Date.now(),
+                    url: e.target.result,
+                    sizeMB: fileSizeMB,
+                    caption: captionInput.value.trim() || 'Ảnh kỷ niệm',
+                    time: new Date().toLocaleString('vi-VN')
+                });
+
+                db.ref('users/' + currentUser + '/images').set(imagesList, () => {
+                    fileInput.value = '';
+                    captionInput.value = '';
+                    alert("Tải ảnh lên thành công!");
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function calculateCurrentStorageMB() {
+            let imgMB = imagesList.reduce((acc, img) => acc + (img.sizeMB || 0.5), 0);
+            let trashMB = trashList.reduce((acc, img) => acc + (img.sizeMB || 0.5), 0);
+            return imgMB + trashMB;
+        }
+
+        function updateStorageUsage() {
+            let usedMB = calculateCurrentStorageMB();
+            let maxGB = 2 + extraStorageGB;
+            let maxMB = maxGB * 1024;
+            let percent = Math.min(100, (usedMB / maxMB) * 100);
+
+            document.getElementById('storageText').textContent = `${(usedMB >= 1024 ? (usedMB/1024).toFixed(2) + ' GB' : usedMB.toFixed(1) + ' MB')} / ${maxGB} GB`;
+            const bar = document.getElementById('storageProgressBar');
+            bar.style.width = percent + '%';
+            bar.className = percent > 85 ? 'progress-bar bg-danger' : 'progress-bar bg-success';
+        }
+
+        // Chuyển ảnh vào thùng rác (lưu 30 ngày)
+        function moveToTrash(id) {
+            const imgIndex = imagesList.findIndex(img => img.id === id);
+            if (imgIndex !== -1) {
+                const img = imagesList[imgIndex];
+                imagesList.splice(imgIndex, 1);
+                
+                trashList.unshift({
+                    ...img,
+                    deletedAt: Date.now() // Thời điểm đưa vào thùng rác
+                });
+
+                db.ref('users/' + currentUser + '/images').set(imagesList);
+                db.ref('users/' + currentUser + '/trash').set(trashList);
+            }
+        }
+
+        // Khôi phục từ thùng rác
+        function restoreFromTrash(id) {
+            const idx = trashList.findIndex(img => img.id === id);
+            if (idx !== -1) {
+                const img = trashList[idx];
+                trashList.splice(idx, 1);
+                delete img.deletedAt;
+                imagesList.unshift(img);
+
+                db.ref('users/' + currentUser + '/images').set(imagesList);
+                db.ref('users/' + currentUser + '/trash').set(trashList);
+            }
+        }
+
+        // Xóa vĩnh viễn 1 ảnh trong thùng rác
+        function deletePermanent(id) {
+            if (confirm("Xóa vĩnh viễn ảnh này?")) {
+                trashList = trashList.filter(img => img.id !== id);
+                db.ref('users/' + currentUser + '/trash').set(trashList);
+            }
+        }
+
+        function emptyTrash() {
+            if (confirm("Dọn sạch toàn bộ thùng rác?")) {
+                trashList = [];
+                db.ref('users/' + currentUser + '/trash').set(trashList);
+            }
+        }
+
+        // Tự động quét và xóa ảnh trong thùng rác quá 30 ngày
+        function cleanupTrash() {
+            const now = Date.now();
+            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+            const originalLength = trashList.length;
+
+            trashList = trashList.filter(img => {
+                return (now - (img.deletedAt || now)) < thirtyDaysMs;
+            });
+
+            if (trashList.length !== originalLength) {
+                db.ref('users/' + currentUser + '/trash').set(trashList);
+            }
+        }
+
+        // Xem chi tiết ảnh (Modal)
+        function viewImageModal(url, caption, time) {
+            document.getElementById('modalImageSrc').src = url;
+            document.getElementById('modalImageCaption').textContent = caption;
+            document.getElementById('modalImageTime').textContent = 'Thời gian chụp: ' + time;
+            document.getElementById('downloadBtn').href = url;
+            
+            const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            myModal.show();
+        }
+
+        function updateGalleryUI() {
+            const gridEl = document.getElementById('imageGalleryGrid');
+            const emptyMsgEl = document.getElementById('emptyGalleryMsg');
+            gridEl.innerHTML = '';
+
+            if (imagesList.length === 0) {
+                emptyMsgEl.classList.remove('d-none');
+            } else {
+                emptyMsgEl.classList.add('d-none');
+                imagesList.forEach(img => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="card h-100 shadow-sm">
+                            <img src="${img.url}" class="gallery-img card-img-top" alt="Ảnh" onclick="viewImageModal('${img.url}', '${img.caption}', '${img.time}')">
+                            <div class="card-body p-2">
+                                <p class="card-text mb-1 fw-bold text-truncate">${img.caption}</p>
+                                <small class="text-muted d-block mb-2">${img.time}</small>
+                                <div class="d-flex gap-1">
+                                    <button onclick="viewImageModal('${img.url}', '${img.caption}', '${img.time}')" class="btn btn-outline-primary btn-sm w-50">Xem</button>
+                                    <button onclick="moveToTrash(${img.id})" class="btn btn-outline-danger btn-sm w-50">Xóa</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gridEl.appendChild(col);
+                });
+            }
+        }
+
+        function updateTrashUI() {
+            const gridEl = document.getElementById('trashGalleryGrid');
+            const emptyMsgEl = document.getElementById('emptyTrashMsg');
+            gridEl.innerHTML = '';
+
+            if (trashList.length === 0) {
+                emptyMsgEl.classList.remove('d-none');
+            } else {
+                emptyMsgEl.classList.add('d-none');
+                trashList.forEach(img => {
+                    const daysLeft = Math.ceil((30 * 24 * 60 * 60 * 1000 - (Date.now() - (img.deletedAt || Date.now()))) / (1000 * 60 * 60 * 24));
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="card h-100 shadow-sm border-secondary opacity-75">
+                            <img src="${img.url}" class="gallery-img card-img-top" style="filter: grayscale(30%);" alt="Ảnh xóa">
+                            <div class="card-body p-2">
+                                <p class="card-text mb-1 fw-bold text-truncate">${img.caption}</p>
+                                <small class="text-danger d-block mb-2">Xóa vĩnh viễn sau: còn ${daysLeft > 0 ? daysLeft : 0} ngày</small>
+                                <div class="d-flex gap-1">
+                                    <button onclick="restoreFromTrash(${img.id})" class="btn btn-outline-success btn-sm w-50">Khôi phục</button>
+                                    <button onclick="deletePermanent(${img.id})" class="btn btn-danger btn-sm w-50">Xóa luôn</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gridEl.appendChild(col);
+                });
+            }
+        }
+
+        // --- NÂNG CẤP DUNG LƯỢNG ---
+        function selectPackage(money) {
+            document.getElementById('customMoney').value = money;
+            calculateUpgradeStorage();
+        }
+
+        function calculateUpgradeStorage() {
+            const money = parseFloat(document.getElementById('customMoney').value) || 0;
+            // Cứ 10.000đ = 1 GB
+            const gbGained = Math.floor(money / 10000);
+            document.getElementById('previewGB').textContent = `${gbGained} GB`;
+        }
+
+        function confirmUpgrade() {
+            const money = parseFloat(document.getElementById('customMoney').value) || 0;
+            if (money < 10000) {
+                alert("Số tiền nạp tối thiểu là 10.000 VNĐ (tương ứng 1 GB)!");
+                return;
+            }
+
+            const gbGained = Math.floor(money / 10000);
+            if (confirm(`Xác nhận nạp ${formatCurrency(money)} để nhận thêm ${gbGained} GB dung lượng lưu trữ?`)) {
+                extraStorageGB += gbGained;
+                db.ref('users/' + currentUser + '/extraStorageGB').set(extraStorageGB, () => {
+                    alert(`Nâng cấp thành công! Bạn nhận được thêm ${gbGained} GB. Tổng dung lượng hiện tại: ${2 + extraStorageGB} GB.`);
+                    document.getElementById('customMoney').value = '';
+                    document.getElementById('previewGB').textContent = '0 GB';
+                    updateStorageUsage();
+                });
+            }
+        }
+
+        function saveProfile() {
+            const bank = document.getElementById('profileBank').value.trim();
+            const email = document.getElementById('profileEmail').value.trim();
+            db.ref('users/' + currentUser + '/profile').set({ bank, email }, () => {
+                alert("Đã lưu thông tin cá nhân!");
+            });
+        }
+
         checkAuthState();
     </script>
 </body>
