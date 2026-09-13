@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heo Đất Tiết Kiệm - Quản Lý Tài Chính</title>
+    <title>Heo Đất Tiết Kiệm Thông Minh</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icon -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .card-summary {
-            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
-            color: white;
+        .piggy-card {
             border-radius: 15px;
-        }
-        .history-item {
-            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .history-item:hover {
             background-color: #f1f3f5;
@@ -27,585 +24,148 @@
 </head>
 <body>
 
-    <div class="container py-4">
-        <h2 class="text-center mb-3 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Tiền Để Dành</h2>
-
-        <!-- KHU VỰC 1: FORM ĐĂNG NHẬP / ĐĂNG KÝ -->
-        <div id="authSection" class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow-sm p-4 border-0 rounded-4">
-                    <h4 class="text-center mb-3 text-secondary" id="authTitle">Đăng Nhập Tài Khoản</h4>
-                    
-                    <!-- Hiển thị thông báo lỗi/thành công -->
-                    <div id="authErrorMsg" class="alert alert-danger d-none py-2 mb-3 text-center small" role="alert"></div>
-
-                    <form id="authForm" onsubmit="handleAuth(event)">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Tên đăng nhập:</label>
-                            <input type="text" class="form-control" id="username" placeholder="vd: HanryMuc" required>
-                            <div class="form-text text-muted small">Viết liền, không dấu, không ký tự đặc biệt.</div>
-                        </div>
-
-                        <!-- Trường Gmail (chỉ hiện khi Đăng ký hoặc Quên mật khẩu) -->
-                        <div class="mb-3 d-none" id="emailFieldContainer">
-                            <label for="userEmail" class="form-label">Gmail:</label>
-                            <input type="email" class="form-control" id="userEmail" placeholder="vd: example@gmail.com">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="userPassword" class="form-label" id="passwordLabel">Mật khẩu:</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="userPassword" placeholder="********" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('userPassword', this)">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="form-text text-muted small">Ít nhất 8 ký tự, có 1 chữ in hoa và 1 ký tự đặc biệt.</div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-3" id="forgotPasswordContainer">
-                            <div></div>
-                            <a href="#" onclick="showForgotPassword(event)" class="text-decoration-none small text-danger fw-bold">Quên mật khẩu?</a>
-                        </div>
-
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" id="authActionBtn" class="btn btn-primary fw-bold py-2">
-                                <i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập
-                            </button>
-                        </div>
-
-                        <div class="text-center" id="authToggleContainer">
-                            <span id="authToggleText" class="text-muted">Chưa có tài khoản?</span>
-                            <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" class="text-decoration-none fw-bold">Đăng ký ngay</a>
-                        </div>
-                    </form>
+    <div class="container py-5">
+        <!-- Khu vực Đăng nhập / Đăng ký -->
+        <div id="auth-section" class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card piggy-card p-4">
+                    <h3 class="text-center text-primary mb-4"><i class="fa-solid fa-piggy-bank me-2"></i>Heo Đất Tiết Kiệm</h3>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Tên tài khoản</label>
+                        <input type="text" class="form-control" id="username" placeholder="Nhập tên của bạn...">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button onclick="handleLogin()" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket me-1"></i> Đăng nhập / Bắt đầu</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- KHU VỰC 2: ỨNG DỤNG CHÍNH -->
-        <div id="appSection" class="d-none">
-            <!-- Thông tin tài khoản & Nút Đăng xuất -->
-            <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded-4 shadow-sm">
-                <div>
-                    <span class="text-muted">Xin chào, </span>
-                    <strong id="userDisplayEmail" class="text-primary"></strong>
-                </div>
-                <button onclick="logout()" class="btn btn-outline-secondary btn-sm fw-bold">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
-                </button>
+        <!-- Khu vực Ứng dụng chính (Ẩn khi chưa đăng nhập) -->
+        <div id="app-section" class="d-none">
+            <!-- Header chào hỏi & Đăng xuất -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>Xin chào, <span id="user-display" class="text-primary fw-bold"></span>! 👋</h4>
+                <button onclick="handleLogout()" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất</button>
             </div>
 
-            <!-- Thanh Menu chuyển đổi tab -->
-            <ul class="nav nav-pills justify-content-center mb-4 gap-2">
-                <li class="nav-item">
-                    <button class="nav-link active fw-bold px-3 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')">
-                        <i class="fa-solid fa-house me-1"></i> Giao Dịch
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch Sử
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabProfileBtn" onclick="switchTab('profile')">
-                        <i class="fa-solid fa-user-gear me-1"></i> Thông Tin
-                    </button>
-                </li>
-            </ul>
-
-            <div class="row justify-content-center">
-                <!-- TAB 1: Khu vực Giao Dịch & Số dư -->
-                <div class="col-md-8 mb-4 tab-content-item" id="sectionHome">
-                    <div class="card card-summary shadow-sm p-4 text-center mb-4">
-                        <h5>Số Tiền Tiết Kiệm Hiện Tại</h5>
-                        <h1 id="totalBalance" class="display-4 fw-bold my-2">0 đ</h1>
-                        <p class="mb-0 opacity-75">Cố gắng tích lũy mỗi ngày nhé!</p>
+            <div class="row">
+                <!-- Cột trái: Số dư & Form giao dịch -->
+                <div class="col-md-4 mb-4">
+                    <!-- Thẻ hiển thị tổng tiền -->
+                    <div class="card piggy-card bg-primary text-white p-4 mb-4 text-center">
+                        <h5 class="card-title mb-2"><i class="fa-solid fa-wallet me-2"></i>Tổng số dư trong heo</h5>
+                        <h2 id="total-balance" class="fw-bold mb-0">0 đ</h2>
                     </div>
 
-                    <div class="card shadow-sm p-4 border-0 rounded-4">
-                        <h5 class="mb-3">Thực Hiện Giao Dịch</h5>
-                        <form id="moneyForm" onsubmit="event.preventDefault();">
-                            <div class="mb-3">
-                                <label for="amount" class="form-label">Nhập số tiền (VNĐ):</label>
-                                <input type="number" class="form-control form-control-lg" id="amount" placeholder="VD: 50000" min="10000" step="1000" required>
-                                <div class="form-text">Số tiền tối thiểu là 10.000 đ</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="note" class="form-label">Ghi chú (Tùy chọn):</label>
-                                <input type="text" class="form-control" id="note" placeholder="VD: Tiền ống heo, Lương tháng này...">
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="button" onclick="addMoney('deposit')" class="btn btn-success flex-fill py-2 fw-bold">
-                                    <i class="fa-solid fa-plus-circle"></i> Thêm Tiền
-                                </button>
-                                <button type="button" onclick="addMoney('withdraw')" class="btn btn-danger flex-fill py-2 fw-bold">
-                                    <i class="fa-solid fa-minus-circle"></i> Rút Tiền
-                                </button>
-                            </div>
-                        </form>
+                    <!-- Form Thêm/Rút tiền -->
+                    <div class="card piggy-card p-4">
+                        <h5 class="mb-3"><i class="fa-solid fa-coins me-2"></i>Giao dịch</h5>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Số tiền (VNĐ)</label>
+                            <input type="number" class="form-control" id="amount" placeholder="VD: 50000">
+                        </div>
+                        <div class="mb-3">
+                            <label for="note" class="form-label">Ghi chú</label>
+                            <input type="text" class="form-control" id="note" placeholder="VD: Tiền ống heo ăn sáng...">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button onclick="addMoney('deposit')" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i> Bỏ ống heo (Nạp)</button>
+                            <button onclick="addMoney('withdraw')" class="btn btn-danger"><i class="fa-solid fa-minus me-1"></i> Đập heo (Rút)</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB 2: Khu vực Lịch Sử -->
-                <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionHistory">
-                    <div class="card shadow-sm p-4 border-0 rounded-4">
+                <!-- Cột phải: Lịch sử giao dịch -->
+                <div class="col-md-8">
+                    <div class="card piggy-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">Lịch Sử Giao Dịch</h5>
-                            <button onclick="clearHistory()" class="btn btn-outline-danger btn-sm">Xóa Tất Cả</button>
+                            <h5 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử giao dịch</h5>
+                            <button onclick="clearHistory()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash-can me-1"></i> Xóa tất cả</button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Thời gian</th>
-                                        <th>Ghi chú</th>
-                                        <th class="text-end">Số tiền</th>
-                                        <th class="text-center">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="historyList">
-                                    <!-- Render lịch sử -->
+
+                        <!-- Danh sách giao dịch -->
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover align-middle">
+                                <tbody id="history-list">
+                                    <!-- Dữ liệu được render bằng JS -->
                                 </tbody>
                             </table>
                         </div>
-                        <p id="emptyMessage" class="text-center text-muted mt-3 d-none">Chưa có lịch sử giao dịch nào.</p>
-                    </div>
-                </div>
-
-                <!-- TAB 3: Khu vực Thông Tin Người Dùng -->
-                <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionProfile">
-                    <div class="card shadow-sm p-4 border-0 rounded-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0 text-primary"><i class="fa-solid fa-id-card"></i> Thông Tin Cá Nhân</h5>
-                            <div>
-                                <button type="button" id="editProfileBtn" onclick="toggleProfileEdit(true)" class="btn btn-outline-primary btn-sm fw-bold">
-                                    <i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa
-                                </button>
-                                <button type="button" onclick="clearProfileData()" class="btn btn-outline-danger btn-sm fw-bold ms-1">
-                                    <i class="fa-solid fa-trash"></i> Xóa Thông Tin
-                                </button>
-                            </div>
+                        <div id="empty-message" class="text-center text-muted py-4 d-none">
+                            <i class="fa-solid fa-box-open fa-2x mb-2"></i>
+                            <p>Chưa có giao dịch nào được ghi nhận.</p>
                         </div>
-
-                        <form id="profileForm" onsubmit="saveProfile(event)">
-                            <div class="mb-3">
-                                <label class="form-label text-muted small fw-bold">Tên tài khoản:</label>
-                                <input type="text" class="form-control" id="profileUsername" disabled>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Ngày sinh:</label>
-                                    <input type="date" class="form-control profile-input" id="profileDob" disabled>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Ngày tham gia:</label>
-                                    <input type="text" class="form-control" id="profileJoinDate" disabled>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Quê quán (Tỉnh/Thành phố):</label>
-                                    <select class="form-select profile-input" id="profileHometown" disabled>
-                                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Nơi ở hiện tại (Theo CCCD):</label>
-                                    <input type="text" class="form-control profile-input" id="profileAddress" placeholder="Nhập địa chỉ theo CCCD" disabled>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Gmail (Dùng lấy lại mật khẩu):</label>
-                                    <input type="email" class="form-control profile-input" id="profileEmail" placeholder="vd: example@gmail.com" disabled>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted small fw-bold">Số tài khoản ngân hàng (STK):</label>
-                                    <input type="text" class="form-control profile-input" id="profileBankAcc" placeholder="Nhập số tài khoản" disabled>
-                                </div>
-                            </div>
-
-                            <div class="d-none" id="profileActionContainer">
-                                <button type="submit" class="btn btn-success fw-bold px-4">
-                                    <i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin
-                                </button>
-                                <button type="button" onclick="toggleProfileEdit(false)" class="btn btn-secondary fw-bold px-3 ms-2">
-                                    Hủy
-                                </button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript xử lý giao diện & logic -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Danh sách 63 Tỉnh/Thành phố Việt Nam cập nhật chuẩn sau sắp xếp
-        const vietnamProvinces = [
-            "Hà Nội", "Hồ Chí Minh", "Hải Phòng", "Đà Nẵng", "Cần Thơ",
-            "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu",
-            "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước",
-            "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông",
-            "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang",
-            "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình",
-            "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu",
-            "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định",
-            "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên",
-            "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
-            "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên",
-            "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang",
-            "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
-        ];
-
-        // Đổ dữ liệu vào thẻ select Quê quán
-        function loadProvinces() {
-            const selectEl = document.getElementById('profileHometown');
-            vietnamProvinces.forEach(province => {
-                const option = document.createElement('option');
-                option.value = province;
-                option.textContent = province;
-                selectEl.appendChild(option);
-            });
-        }
-        loadProvinces();
-
-        let authMode = 'login'; // 'login', 'register', 'forgot'
-        let currentUser = localStorage.getItem('currentUser') || null;
+        let currentUser = localStorage.getItem('current_user') || '';
         let transactions = [];
 
+        // Định dạng tiền tệ VNĐ
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        // Kiểm tra trạng thái đăng nhập khi load trang
         function checkAuthState() {
-            currentUser = localStorage.getItem('currentUser') || null;
-            document.getElementById('authErrorMsg').classList.add('d-none');
             if (currentUser) {
-                document.getElementById('authSection').classList.add('d-none');
-                document.getElementById('appSection').classList.remove('d-none');
-                document.getElementById('userDisplayEmail').textContent = currentUser;
-                transactions = JSON.parse(localStorage.getItem('transactions_' + currentUser)) || [];
-                loadProfileData();
+                document.getElementById('auth-section').classList.add('d-none');
+                document.getElementById('app-section').classList.remove('d-none');
+                document.getElementById('user-display').innerText = currentUser;
+                
+                // Tải dữ liệu giao dịch của user này
+                const savedData = localStorage.getItem('transactions_' + currentUser);
+                transactions = savedData ? JSON.parse(savedData) : [];
                 updateUI();
             } else {
-                document.getElementById('authSection').classList.remove('d-none');
-                document.getElementById('appSection').classList.add('d-none');
+                document.getElementById('auth-section').classList.remove('d-none');
+                document.getElementById('app-section').classList.add('d-none');
             }
         }
 
-        // Hiện/ẩn mật khẩu
-        function togglePasswordVisibility(fieldId, btnEl) {
-            const inputField = document.getElementById(fieldId);
-            const icon = btnEl.querySelector('i');
-            if (inputField.type === "password") {
-                inputField.type = "text";
-                icon.className = "fa-solid fa-eye-slash";
-            } else {
-                inputField.type = "password";
-                icon.className = "fa-solid fa-eye";
-            }
-        }
-
-        // Chuyển đổi qua lại giữa Đăng nhập và Đăng ký
-        function toggleAuthMode(e) {
-            if (e) e.preventDefault();
-            const titleEl = document.getElementById('authTitle');
-            const btnEl = document.getElementById('authActionBtn');
-            const toggleTextEl = document.getElementById('authToggleText');
-            const toggleLinkEl = document.getElementById('authToggleLink');
-            const emailContainer = document.getElementById('emailFieldContainer');
-            const forgotContainer = document.getElementById('forgotPasswordContainer');
-            const passwordLabel = document.getElementById('passwordLabel');
-            document.getElementById('authErrorMsg').classList.add('d-none');
-            document.getElementById('authForm').reset();
-
-            if (authMode === 'login') {
-                authMode = 'register';
-                titleEl.textContent = "Đăng Ký Tài Khoản Mới";
-                btnEl.innerHTML = '<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký';
-                toggleTextEl.textContent = "Đã có tài khoản?";
-                toggleLinkEl.textContent = "Đăng nhập ngay";
-                emailContainer.classList.remove('d-none');
-                document.getElementById('userEmail').setAttribute('required', 'true');
-                forgotContainer.classList.add('d-none');
-                passwordLabel.textContent = "Mật khẩu:";
-            } else {
-                authMode = 'login';
-                titleEl.textContent = "Đăng Nhập Tài Khoản";
-                btnEl.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập';
-                toggleTextEl.textContent = "Chưa có tài khoản?";
-                toggleLinkEl.textContent = "Đăng ký ngay";
-                emailContainer.classList.add('d-none');
-                document.getElementById('userEmail').removeAttribute('required');
-                forgotContainer.classList.remove('d-none');
-                passwordLabel.textContent = "Mật khẩu:";
-            }
-        }
-
-        // Giao diện Quên mật khẩu
-        function showForgotPassword(e) {
-            e.preventDefault();
-            authMode = 'forgot';
-            document.getElementById('authTitle').textContent = "Khôi Phục Mật Khẩu";
-            document.getElementById('authActionBtn').innerHTML = '<i class="fa-solid fa-key me-1"></i> Đặt Lại Mật Khẩu';
-            document.getElementById('emailFieldContainer').classList.remove('d-none');
-            document.getElementById('userEmail').setAttribute('required', 'true');
-            document.getElementById('forgotPasswordContainer').classList.add('d-none');
-            document.getElementById('authToggleContainer').innerHTML = '<a href="#" onclick="resetToLoginMode(event)" class="text-decoration-none fw-bold"><i class="fa-solid fa-arrow-left"></i> Quay lại Đăng nhập</a>';
-            document.getElementById('passwordLabel').textContent = "Mật khẩu mới:";
-            document.getElementById('authErrorMsg').classList.add('d-none');
-        }
-
-        function resetToLoginMode(e) {
-            e.preventDefault();
-            authMode = 'login';
-            document.getElementById('authTitle').textContent = "Đăng Nhập Tài Khoản";
-            document.getElementById('authActionBtn').innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập';
-            document.getElementById('emailFieldContainer').classList.add('d-none');
-            document.getElementById('userEmail').removeAttribute('required');
-            document.getElementById('forgotPasswordContainer').classList.remove('d-none');
-            document.getElementById('passwordLabel').textContent = "Mật khẩu:";
-            document.getElementById('authToggleContainer').innerHTML = '<span id="authToggleText" class="text-muted">Chưa có tài khoản?</span> <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" class="text-decoration-none fw-bold">Đăng ký ngay</a>';
-            document.getElementById('authErrorMsg').classList.add('d-none');
-            document.getElementById('authForm').reset();
-        }
-
-        function showError(message) {
-            const errorEl = document.getElementById('authErrorMsg');
-            errorEl.textContent = message;
-            errorEl.classList.remove('d-none');
-        }
-
-        // Xử lý xác thực Đăng Ký / Đăng Nhập / Quên Mật Khẩu
-        function handleAuth(event) {
-            event.preventDefault();
-            const usernameInput = document.getElementById('username').value.trim();
-            const passInput = document.getElementById('userPassword').value;
-            const emailInput = document.getElementById('userEmail').value.trim();
-
-            // Kiểm tra định dạng Tên đăng nhập
-            const usernameRegex = /^[a-zA-Z0-9]+$/;
-            if (!usernameRegex.test(usernameInput)) {
-                showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt!");
+        // Xử lý đăng nhập
+        function handleLogin() {
+            const usernameInput = document.getElementById('username');
+            const name = usernameInput.value.trim();
+            if (!name) {
+                alert('Vui lòng nhập tên tài khoản của bạn!');
+                usernameInput.focus();
                 return;
             }
-
-            // Kiểm tra định dạng Mật khẩu
-            if (passInput.length < 8) {
-                showError("Mật khẩu cần ít nhất 8 ký tự!");
-                return;
-            }
-            if (!/[A-Z]/.test(passInput)) {
-                showError("Mật khẩu phải bao gồm ít nhất 1 chữ in hoa!");
-                return;
-            }
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passInput)) {
-                showError("Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt!");
-                return;
-            }
-
-            let accounts = JSON.parse(localStorage.getItem('saved_accounts')) || {};
-            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
-
-            if (authMode === 'register') {
-                if (accounts[usernameInput]) {
-                    showError("Tên đăng nhập này đã tồn tại! Vui lòng chọn tên khác.");
-                    return;
-                }
-
-                // Lưu tài khoản & Mật khẩu
-                accounts[usernameInput] = passInput;
-                localStorage.setItem('saved_accounts', JSON.stringify(accounts));
-
-                // Khởi tạo profile kèm ngày tham gia & gmail
-                const nowStr = new Date().toLocaleDateString('vi-VN');
-                profiles[usernameInput] = {
-                    username: usernameInput,
-                    email: emailInput,
-                    dob: '',
-                    hometown: '',
-                    address: '',
-                    joinDate: nowStr,
-                    bankAcc: ''
-                };
-                localStorage.setItem('saved_profiles', JSON.stringify(profiles));
-
-                alert('Đăng ký tài khoản thành công!');
-                resetToLoginMode(event);
-            } 
-            else if (authMode === 'login') {
-                if (!accounts[usernameInput]) {
-                    showError("Tài khoản chưa được đăng ký, mời bạn đăng ký tài khoản trước!");
-                    return;
-                }
-                if (accounts[usernameInput] !== passInput) {
-                    showError("Sai mật khẩu, vui lòng kiểm tra lại!");
-                    return;
-                }
-
-                currentUser = usernameInput;
-                localStorage.setItem('currentUser', currentUser);
-                alert('Đăng nhập thành công!');
-                document.getElementById('authForm').reset();
-                checkAuthState();
-            }
-            else if (authMode === 'forgot') {
-                if (!accounts[usernameInput]) {
-                    showError("Tên đăng nhập không tồn tại trong hệ thống!");
-                    return;
-                }
-                let userProf = profiles[usernameInput] || {};
-                if (!userProf.email || userProf.email.toLowerCase() !== emailInput.toLowerCase()) {
-                    showError("Gmail xác thực không khớp với Gmail đã đăng ký tài khoản này!");
-                    return;
-                }
-
-                // Cập nhật mật khẩu mới
-                accounts[usernameInput] = passInput;
-                localStorage.setItem('saved_accounts', JSON.stringify(accounts));
-                alert('Đặt lại mật khẩu thành công! Hãy đăng nhập lại.');
-                resetToLoginMode(event);
-            }
+            currentUser = name;
+            localStorage.setItem('current_user', currentUser);
+            usernameInput.value = '';
+            checkAuthState();
         }
 
         // Đăng xuất
-        function logout() {
-            if (confirm('Bạn có muốn đăng xuất khỏi tài khoản không?')) {
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                checkAuthState();
-            }
+        function handleLogout() {
+            localStorage.removeItem('current_user');
+            currentUser = '';
+            transactions = [];
+            checkAuthState();
         }
 
-        function formatCurrency(number) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
-        }
-
-        // Chuyển đổi tab giao diện
-        function switchTab(tabName) {
-            const homeSec = document.getElementById('sectionHome');
-            const historySec = document.getElementById('sectionHistory');
-            const profileSec = document.getElementById('sectionProfile');
-            
-            const homeBtn = document.getElementById('tabHomeBtn');
-            const historyBtn = document.getElementById('tabHistoryBtn');
-            const profileBtn = document.getElementById('tabProfileBtn');
-
-            homeSec.classList.add('d-none');
-            historySec.classList.add('d-none');
-            profileSec.classList.add('d-none');
-
-            homeBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
-            historyBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
-            profileBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
-
-            if (tabName === 'home') {
-                homeSec.classList.remove('d-none');
-                homeBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
-            } else if (tabName === 'history') {
-                historySec.classList.remove('d-none');
-                historyBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
-            } else if (tabName === 'profile') {
-                profileSec.classList.remove('d-none');
-                profileBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
-            }
-        }
-
-        // Xử lý Thông Tin Người Dùng
-        function loadProfileData() {
-            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
-            let prof = profiles[currentUser] || {
-                username: currentUser,
-                email: '',
-                dob: '',
-                hometown: '',
-                address: '',
-                joinDate: new Date().toLocaleDateString('vi-VN'),
-                bankAcc: ''
-            };
-
-            document.getElementById('profileUsername').value = prof.username || currentUser;
-            document.getElementById('profileDob').value = prof.dob || '';
-            document.getElementById('profileHometown').value = prof.hometown || '';
-            document.getElementById('profileAddress').value = prof.address || '';
-            document.getElementById('profileJoinDate').value = prof.joinDate || '';
-            document.getElementById('profileEmail').value = prof.email || '';
-            document.getElementById('profileBankAcc').value = prof.bankAcc || '';
-            toggleProfileEdit(false);
-        }
-
-        function toggleProfileEdit(isEnable) {
-            const inputs = document.querySelectorAll('.profile-input');
-            inputs.forEach(input => {
-                input.disabled = !isEnable;
-            });
-            const editBtn = document.getElementById('editProfileBtn');
-            const actionContainer = document.getElementById('profileActionContainer');
-
-            if (isEnable) {
-                editBtn.classList.add('d-none');
-                actionContainer.classList.remove('d-none');
-            } else {
-                editBtn.classList.remove('d-none');
-                actionContainer.classList.add('d-none');
-            }
-        }
-
-        function saveProfile(event) {
-            event.preventDefault();
-            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
-            
-            profiles[currentUser] = {
-                username: currentUser,
-                dob: document.getElementById('profileDob').value,
-                hometown: document.getElementById('profileHometown').value,
-                address: document.getElementById('profileAddress').value,
-                joinDate: document.getElementById('profileJoinDate').value,
-                email: document.getElementById('profileEmail').value,
-                bankAcc: document.getElementById('profileBankAcc').value
-            };
-
-            localStorage.setItem('saved_profiles', JSON.stringify(profiles));
-            alert('Lưu thông tin cá nhân thành công!');
-            toggleProfileEdit(false);
-        }
-
-        function clearProfileData() {
-            if (confirm('Bạn có chắc muốn xóa toàn bộ thông tin cá nhân đã nhập không?')) {
-                document.getElementById('profileDob').value = '';
-                document.getElementById('profileHometown').value = '';
-                document.getElementById('profileAddress').value = '';
-                document.getElementById('profileEmail').value = '';
-                document.getElementById('profileBankAcc').value = '';
-
-                let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
-                if (profiles[currentUser]) {
-                    profiles[currentUser].dob = '';
-                    profiles[currentUser].hometown = '';
-                    profiles[currentUser].address = '';
-                    profiles[currentUser].email = '';
-                    profiles[currentUser].bankAcc = '';
-                    localStorage.setItem('saved_profiles', JSON.stringify(profiles));
-                }
-                alert('Đã xóa thông tin thành công!');
-            }
-        }
-
+        // Cập nhật toàn bộ giao diện (Số dư & Bảng lịch sử)
         function updateUI() {
-            if (!currentUser) return;
-            const totalBalanceEl = document.getElementById('totalBalance');
-            const historyListEl = document.getElementById('historyList');
-            const emptyMessageEl = document.getElementById('emptyMessage');
-
-            let total = transactions.reduce((acc, item) => {
+            // 1. Tính tổng số dư
+            let totalBalance = transactions.reduce((acc, item) => {
                 return item.type === 'deposit' ? acc + item.amount : acc - item.amount;
             }, 0);
+            document.getElementById('total-balance').innerText = formatCurrency(totalBalance);
 
-            totalBalanceEl.textContent = formatCurrency(total);
-
+            // 2. Hiển thị danh sách lịch sử
+            const historyListEl = document.getElementById('history-list');
+            const emptyMessageEl = document.getElementById('empty-message');
             historyListEl.innerHTML = '';
+
             if (transactions.length === 0) {
                 emptyMessageEl.classList.remove('d-none');
             } else {
@@ -623,16 +183,18 @@
                         <td>${item.note || (isDeposit ? 'Thêm tiền' : 'Rút tiền')}</td>
                         <td class="text-end ${amountClass}">${amountSign}${formatCurrency(item.amount)}</td>
                         <td class="text-center">
-                            <button onclick="deleteItem(${originalIndex})" class="btn btn-sm text-danger"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="deleteItem(${originalIndex})" class="btn btn-sm text-danger" title="Xóa giao dịch"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     historyListEl.appendChild(row);
                 });
             }
 
+            // 3. Lưu vào LocalStorage theo từng user
             localStorage.setItem('transactions_' + currentUser, JSON.stringify(transactions));
         }
 
+        // Thêm hoặc Rút tiền
         function addMoney(type) {
             const amountInput = document.getElementById('amount');
             const noteInput = document.getElementById('note');
@@ -669,9 +231,9 @@
             amountInput.value = '';
             noteInput.value = '';
             updateUI();
-            switchTab('history');
         }
 
+        // Xóa 1 giao dịch
         function deleteItem(index) {
             if (confirm('Bạn có chắc muốn xóa giao dịch này không?')) {
                 transactions.splice(index, 1);
@@ -679,6 +241,7 @@
             }
         }
 
+        // Xóa toàn bộ lịch sử
         function clearHistory() {
             if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử và làm lại từ đầu không?')) {
                 transactions = [];
@@ -686,7 +249,7 @@
             }
         }
 
-        // Khởi chạy hệ thống
+        // Khởi chạy hệ thống khi tải trang
         checkAuthState();
     </script>
 </body>
