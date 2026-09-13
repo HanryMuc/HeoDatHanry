@@ -36,7 +36,7 @@
                 <div class="card shadow-sm p-4 border-0 rounded-4">
                     <h4 class="text-center mb-3 text-secondary" id="authTitle">Đăng Nhập Tài Khoản</h4>
                     
-                    <!-- Hiển thị thông báo lỗi chi tiết -->
+                    <!-- Hiển thị thông báo lỗi/thành công -->
                     <div id="authErrorMsg" class="alert alert-danger d-none py-2 mb-3 text-center small" role="alert"></div>
 
                     <form id="authForm" onsubmit="handleAuth(event)">
@@ -45,10 +45,27 @@
                             <input type="text" class="form-control" id="username" placeholder="vd: HanryMuc" required>
                             <div class="form-text text-muted small">Viết liền, không dấu, không ký tự đặc biệt.</div>
                         </div>
+
+                        <!-- Trường Gmail (chỉ hiện khi Đăng ký hoặc Quên mật khẩu) -->
+                        <div class="mb-3 d-none" id="emailFieldContainer">
+                            <label for="userEmail" class="form-label">Gmail:</label>
+                            <input type="email" class="form-control" id="userEmail" placeholder="vd: example@gmail.com">
+                        </div>
+
                         <div class="mb-3">
-                            <label for="userPassword" class="form-label">Mật khẩu:</label>
-                            <input type="password" class="form-control" id="userPassword" placeholder="********" required>
+                            <label for="userPassword" class="form-label" id="passwordLabel">Mật khẩu:</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="userPassword" placeholder="********" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('userPassword', this)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                             <div class="form-text text-muted small">Ít nhất 8 ký tự, có 1 chữ in hoa và 1 ký tự đặc biệt.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3" id="forgotPasswordContainer">
+                            <div></div>
+                            <a href="#" onclick="showForgotPassword(event)" class="text-decoration-none small text-danger fw-bold">Quên mật khẩu?</a>
                         </div>
 
                         <div class="d-grid gap-2 mb-3">
@@ -57,7 +74,7 @@
                             </button>
                         </div>
 
-                        <div class="text-center">
+                        <div class="text-center" id="authToggleContainer">
                             <span id="authToggleText" class="text-muted">Chưa có tài khoản?</span>
                             <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" class="text-decoration-none fw-bold">Đăng ký ngay</a>
                         </div>
@@ -82,29 +99,31 @@
             <!-- Thanh Menu chuyển đổi tab -->
             <ul class="nav nav-pills justify-content-center mb-4 gap-2">
                 <li class="nav-item">
-                    <button class="nav-link active fw-bold px-4 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')">
+                    <button class="nav-link active fw-bold px-3 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')">
                         <i class="fa-solid fa-house me-1"></i> Giao Dịch
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Xem Lịch Sử
+                    <button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')">
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch Sử
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabProfileBtn" onclick="switchTab('profile')">
+                        <i class="fa-solid fa-user-gear me-1"></i> Thông Tin
                     </button>
                 </li>
             </ul>
 
             <div class="row justify-content-center">
-                <!-- Tổng số tiền -->
-                <div class="col-md-8 mb-4">
-                    <div class="card card-summary shadow-sm p-4 text-center">
+                <!-- TAB 1: Khu vực Giao Dịch & Số dư -->
+                <div class="col-md-8 mb-4 tab-content-item" id="sectionHome">
+                    <div class="card card-summary shadow-sm p-4 text-center mb-4">
                         <h5>Số Tiền Tiết Kiệm Hiện Tại</h5>
                         <h1 id="totalBalance" class="display-4 fw-bold my-2">0 đ</h1>
                         <p class="mb-0 opacity-75">Cố gắng tích lũy mỗi ngày nhé!</p>
                     </div>
-                </div>
 
-                <!-- TAB 1: Khu vực Nhập Tiền -->
-                <div class="col-md-8 mb-4 tab-content-item" id="sectionHome">
                     <div class="card shadow-sm p-4 border-0 rounded-4">
                         <h5 class="mb-3">Thực Hiện Giao Dịch</h5>
                         <form id="moneyForm" onsubmit="event.preventDefault();">
@@ -149,11 +168,76 @@
                                     </tr>
                                 </thead>
                                 <tbody id="historyList">
-                                    <!-- Dữ liệu lịch sử render ở đây -->
+                                    <!-- Render lịch sử -->
                                 </tbody>
                             </table>
                         </div>
                         <p id="emptyMessage" class="text-center text-muted mt-3 d-none">Chưa có lịch sử giao dịch nào.</p>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Khu vực Thông Tin Người Dùng -->
+                <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionProfile">
+                    <div class="card shadow-sm p-4 border-0 rounded-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 text-primary"><i class="fa-solid fa-id-card"></i> Thông Tin Cá Nhân</h5>
+                            <div>
+                                <button type="button" id="editProfileBtn" onclick="toggleProfileEdit(true)" class="btn btn-outline-primary btn-sm fw-bold">
+                                    <i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa
+                                </button>
+                                <button type="button" onclick="clearProfileData()" class="btn btn-outline-danger btn-sm fw-bold ms-1">
+                                    <i class="fa-solid fa-trash"></i> Xóa Thông Tin
+                                </button>
+                            </div>
+                        </div>
+
+                        <form id="profileForm" onsubmit="saveProfile(event)">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Tên tài khoản:</label>
+                                <input type="text" class="form-control" id="profileUsername" disabled>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Ngày sinh:</label>
+                                    <input type="date" class="form-control profile-input" id="profileDob" disabled>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Ngày tham gia:</label>
+                                    <input type="text" class="form-control" id="profileJoinDate" disabled>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Quê quán (Tỉnh/Thành phố):</label>
+                                    <select class="form-select profile-input" id="profileHometown" disabled>
+                                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Nơi ở hiện tại (Theo CCCD):</label>
+                                    <input type="text" class="form-control profile-input" id="profileAddress" placeholder="Nhập địa chỉ theo CCCD" disabled>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Gmail (Dùng lấy lại mật khẩu):</label>
+                                    <input type="email" class="form-control profile-input" id="profileEmail" placeholder="vd: example@gmail.com" disabled>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Số tài khoản ngân hàng (STK):</label>
+                                    <input type="text" class="form-control profile-input" id="profileBankAcc" placeholder="Nhập số tài khoản" disabled>
+                                </div>
+                            </div>
+
+                            <div class="d-none" id="profileActionContainer">
+                                <button type="submit" class="btn btn-success fw-bold px-4">
+                                    <i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin
+                                </button>
+                                <button type="button" onclick="toggleProfileEdit(false)" class="btn btn-secondary fw-bold px-3 ms-2">
+                                    Hủy
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -162,11 +246,39 @@
 
     <!-- JavaScript xử lý giao diện & logic -->
     <script>
-        let isLoginMode = true; // true: Đăng nhập, false: Đăng ký
+        // Danh sách 63 Tỉnh/Thành phố Việt Nam cập nhật chuẩn sau sắp xếp
+        const vietnamProvinces = [
+            "Hà Nội", "Hồ Chí Minh", "Hải Phòng", "Đà Nẵng", "Cần Thơ",
+            "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu",
+            "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước",
+            "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông",
+            "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang",
+            "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình",
+            "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu",
+            "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định",
+            "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên",
+            "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
+            "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên",
+            "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang",
+            "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
+        ];
+
+        // Đổ dữ liệu vào thẻ select Quê quán
+        function loadProvinces() {
+            const selectEl = document.getElementById('profileHometown');
+            vietnamProvinces.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                selectEl.appendChild(option);
+            });
+        }
+        loadProvinces();
+
+        let authMode = 'login'; // 'login', 'register', 'forgot'
         let currentUser = localStorage.getItem('currentUser') || null;
         let transactions = [];
 
-        // Kiểm tra trạng thái đăng nhập khi load trang
         function checkAuthState() {
             currentUser = localStorage.getItem('currentUser') || null;
             document.getElementById('authErrorMsg').classList.add('d-none');
@@ -175,6 +287,7 @@
                 document.getElementById('appSection').classList.remove('d-none');
                 document.getElementById('userDisplayEmail').textContent = currentUser;
                 transactions = JSON.parse(localStorage.getItem('transactions_' + currentUser)) || [];
+                loadProfileData();
                 updateUI();
             } else {
                 document.getElementById('authSection').classList.remove('d-none');
@@ -182,105 +295,178 @@
             }
         }
 
-        // Chuyển đổi qua lại giữa form Đăng nhập và Đăng ký
+        // Hiện/ẩn mật khẩu
+        function togglePasswordVisibility(fieldId, btnEl) {
+            const inputField = document.getElementById(fieldId);
+            const icon = btnEl.querySelector('i');
+            if (inputField.type === "password") {
+                inputField.type = "text";
+                icon.className = "fa-solid fa-eye-slash";
+            } else {
+                inputField.type = "password";
+                icon.className = "fa-solid fa-eye";
+            }
+        }
+
+        // Chuyển đổi qua lại giữa Đăng nhập và Đăng ký
         function toggleAuthMode(e) {
-            e.preventDefault();
-            isLoginMode = !isLoginMode;
+            if (e) e.preventDefault();
             const titleEl = document.getElementById('authTitle');
             const btnEl = document.getElementById('authActionBtn');
             const toggleTextEl = document.getElementById('authToggleText');
             const toggleLinkEl = document.getElementById('authToggleLink');
+            const emailContainer = document.getElementById('emailFieldContainer');
+            const forgotContainer = document.getElementById('forgotPasswordContainer');
+            const passwordLabel = document.getElementById('passwordLabel');
             document.getElementById('authErrorMsg').classList.add('d-none');
+            document.getElementById('authForm').reset();
 
-            if (isLoginMode) {
-                titleEl.textContent = "Đăng Nhập Tài Khoản";
-                btnEl.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập';
-                toggleTextEl.textContent = "Chưa có tài khoản?";
-                toggleLinkEl.textContent = "Đăng ký ngay";
-            } else {
+            if (authMode === 'login') {
+                authMode = 'register';
                 titleEl.textContent = "Đăng Ký Tài Khoản Mới";
                 btnEl.innerHTML = '<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký';
                 toggleTextEl.textContent = "Đã có tài khoản?";
                 toggleLinkEl.textContent = "Đăng nhập ngay";
+                emailContainer.classList.remove('d-none');
+                document.getElementById('userEmail').setAttribute('required', 'true');
+                forgotContainer.classList.add('d-none');
+                passwordLabel.textContent = "Mật khẩu:";
+            } else {
+                authMode = 'login';
+                titleEl.textContent = "Đăng Nhập Tài Khoản";
+                btnEl.innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập';
+                toggleTextEl.textContent = "Chưa có tài khoản?";
+                toggleLinkEl.textContent = "Đăng ký ngay";
+                emailContainer.classList.add('d-none');
+                document.getElementById('userEmail').removeAttribute('required');
+                forgotContainer.classList.remove('d-none');
+                passwordLabel.textContent = "Mật khẩu:";
             }
         }
 
-        // Hàm hiển thị lỗi trực tiếp ra màn hình
+        // Giao diện Quên mật khẩu
+        function showForgotPassword(e) {
+            e.preventDefault();
+            authMode = 'forgot';
+            document.getElementById('authTitle').textContent = "Khôi Phục Mật Khẩu";
+            document.getElementById('authActionBtn').innerHTML = '<i class="fa-solid fa-key me-1"></i> Đặt Lại Mật Khẩu';
+            document.getElementById('emailFieldContainer').classList.remove('d-none');
+            document.getElementById('userEmail').setAttribute('required', 'true');
+            document.getElementById('forgotPasswordContainer').classList.add('d-none');
+            document.getElementById('authToggleContainer').innerHTML = '<a href="#" onclick="resetToLoginMode(event)" class="text-decoration-none fw-bold"><i class="fa-solid fa-arrow-left"></i> Quay lại Đăng nhập</a>';
+            document.getElementById('passwordLabel').textContent = "Mật khẩu mới:";
+            document.getElementById('authErrorMsg').classList.add('d-none');
+        }
+
+        function resetToLoginMode(e) {
+            e.preventDefault();
+            authMode = 'login';
+            document.getElementById('authTitle').textContent = "Đăng Nhập Tài Khoản";
+            document.getElementById('authActionBtn').innerHTML = '<i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập';
+            document.getElementById('emailFieldContainer').classList.add('d-none');
+            document.getElementById('userEmail').removeAttribute('required');
+            document.getElementById('forgotPasswordContainer').classList.remove('d-none');
+            document.getElementById('passwordLabel').textContent = "Mật khẩu:";
+            document.getElementById('authToggleContainer').innerHTML = '<span id="authToggleText" class="text-muted">Chưa có tài khoản?</span> <a href="#" onclick="toggleAuthMode(event)" id="authToggleLink" class="text-decoration-none fw-bold">Đăng ký ngay</a>';
+            document.getElementById('authErrorMsg').classList.add('d-none');
+            document.getElementById('authForm').reset();
+        }
+
         function showError(message) {
             const errorEl = document.getElementById('authErrorMsg');
             errorEl.textContent = message;
             errorEl.classList.remove('d-none');
         }
 
-        // Xử lý xác thực Đăng Ký / Đăng Nhập
+        // Xử lý xác thực Đăng Ký / Đăng Nhập / Quên Mật Khẩu
         function handleAuth(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('username').value.trim();
             const passInput = document.getElementById('userPassword').value;
+            const emailInput = document.getElementById('userEmail').value.trim();
 
-            // --- BƯỚC 1: KIỂM TRA ĐỊNH DẠNG TÊN ĐĂNG NHẬP & MẬT KHẨU ---
+            // Kiểm tra định dạng Tên đăng nhập
             const usernameRegex = /^[a-zA-Z0-9]+$/;
             if (!usernameRegex.test(usernameInput)) {
                 showError("Tên đăng nhập phải viết liền, không dấu và không chứa ký tự đặc biệt!");
                 return;
             }
 
+            // Kiểm tra định dạng Mật khẩu
             if (passInput.length < 8) {
                 showError("Mật khẩu cần ít nhất 8 ký tự!");
                 return;
             }
-
-            const hasUpperCase = /[A-Z]/.test(passInput);
-            if (!hasUpperCase) {
+            if (!/[A-Z]/.test(passInput)) {
                 showError("Mật khẩu phải bao gồm ít nhất 1 chữ in hoa!");
                 return;
             }
-
-            const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passInput);
-            if (!hasSpecialChar) {
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passInput)) {
                 showError("Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt!");
                 return;
             }
 
-            // --- BƯỚC 2: KIỂM TRA DỮ LIỆU TÀI KHOẢN TRONG LOCALSTORAGE ---
             let accounts = JSON.parse(localStorage.getItem('saved_accounts')) || {};
+            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
 
-            if (!isLoginMode) {
-                // XỬ LÝ ĐĂNG KÝ: Nếu tên đã tồn tại thì báo lỗi
+            if (authMode === 'register') {
                 if (accounts[usernameInput]) {
                     showError("Tên đăng nhập này đã tồn tại! Vui lòng chọn tên khác.");
                     return;
                 }
 
-                // Lưu tài khoản mới
+                // Lưu tài khoản & Mật khẩu
                 accounts[usernameInput] = passInput;
                 localStorage.setItem('saved_accounts', JSON.stringify(accounts));
 
+                // Khởi tạo profile kèm ngày tham gia & gmail
+                const nowStr = new Date().toLocaleDateString('vi-VN');
+                profiles[usernameInput] = {
+                    username: usernameInput,
+                    email: emailInput,
+                    dob: '',
+                    hometown: '',
+                    address: '',
+                    joinDate: nowStr,
+                    bankAcc: ''
+                };
+                localStorage.setItem('saved_profiles', JSON.stringify(profiles));
+
                 alert('Đăng ký tài khoản thành công!');
-                document.getElementById('authForm').reset();
-                toggleAuthMode(event); // Chuyển sang form đăng nhập
-            } else {
-                // XỬ LÝ ĐĂNG NHẬP:
-                // 1. Kiểm tra nếu chưa đăng ký tài khoản
+                resetToLoginMode(event);
+            } 
+            else if (authMode === 'login') {
                 if (!accounts[usernameInput]) {
                     showError("Tài khoản chưa được đăng ký, mời bạn đăng ký tài khoản trước!");
                     return;
                 }
-
-                // 2. Kiểm tra nếu sai mật khẩu
                 if (accounts[usernameInput] !== passInput) {
                     showError("Sai mật khẩu, vui lòng kiểm tra lại!");
                     return;
                 }
 
-                // Đăng nhập thành công
-                document.getElementById('authErrorMsg').classList.add('d-none');
                 currentUser = usernameInput;
                 localStorage.setItem('currentUser', currentUser);
-                
                 alert('Đăng nhập thành công!');
                 document.getElementById('authForm').reset();
                 checkAuthState();
+            }
+            else if (authMode === 'forgot') {
+                if (!accounts[usernameInput]) {
+                    showError("Tên đăng nhập không tồn tại trong hệ thống!");
+                    return;
+                }
+                let userProf = profiles[usernameInput] || {};
+                if (!userProf.email || userProf.email.toLowerCase() !== emailInput.toLowerCase()) {
+                    showError("Gmail xác thực không khớp với Gmail đã đăng ký tài khoản này!");
+                    return;
+                }
+
+                // Cập nhật mật khẩu mới
+                accounts[usernameInput] = passInput;
+                localStorage.setItem('saved_accounts', JSON.stringify(accounts));
+                alert('Đặt lại mật khẩu thành công! Hãy đăng nhập lại.');
+                resetToLoginMode(event);
             }
         }
 
@@ -297,23 +483,113 @@
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
         }
 
-        // Chuyển đổi tab trong ứng dụng
+        // Chuyển đổi tab giao diện
         function switchTab(tabName) {
             const homeSec = document.getElementById('sectionHome');
             const historySec = document.getElementById('sectionHistory');
+            const profileSec = document.getElementById('sectionProfile');
+            
             const homeBtn = document.getElementById('tabHomeBtn');
             const historyBtn = document.getElementById('tabHistoryBtn');
+            const profileBtn = document.getElementById('tabProfileBtn');
+
+            homeSec.classList.add('d-none');
+            historySec.classList.add('d-none');
+            profileSec.classList.add('d-none');
+
+            homeBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
+            historyBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
+            profileBtn.className = 'nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border';
 
             if (tabName === 'home') {
                 homeSec.classList.remove('d-none');
-                historySec.classList.add('d-none');
-                homeBtn.className = 'nav-link active fw-bold px-4 rounded-pill shadow-sm';
-                historyBtn.className = 'nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border';
-            } else {
-                homeSec.classList.add('d-none');
+                homeBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
+            } else if (tabName === 'history') {
                 historySec.classList.remove('d-none');
-                historyBtn.className = 'nav-link active fw-bold px-4 rounded-pill shadow-sm';
-                homeBtn.className = 'nav-link fw-bold px-4 rounded-pill shadow-sm text-dark bg-white border';
+                historyBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
+            } else if (tabName === 'profile') {
+                profileSec.classList.remove('d-none');
+                profileBtn.className = 'nav-link active fw-bold px-3 rounded-pill shadow-sm';
+            }
+        }
+
+        // Xử lý Thông Tin Người Dùng
+        function loadProfileData() {
+            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
+            let prof = profiles[currentUser] || {
+                username: currentUser,
+                email: '',
+                dob: '',
+                hometown: '',
+                address: '',
+                joinDate: new Date().toLocaleDateString('vi-VN'),
+                bankAcc: ''
+            };
+
+            document.getElementById('profileUsername').value = prof.username || currentUser;
+            document.getElementById('profileDob').value = prof.dob || '';
+            document.getElementById('profileHometown').value = prof.hometown || '';
+            document.getElementById('profileAddress').value = prof.address || '';
+            document.getElementById('profileJoinDate').value = prof.joinDate || '';
+            document.getElementById('profileEmail').value = prof.email || '';
+            document.getElementById('profileBankAcc').value = prof.bankAcc || '';
+            toggleProfileEdit(false);
+        }
+
+        function toggleProfileEdit(isEnable) {
+            const inputs = document.querySelectorAll('.profile-input');
+            inputs.forEach(input => {
+                input.disabled = !isEnable;
+            });
+            const editBtn = document.getElementById('editProfileBtn');
+            const actionContainer = document.getElementById('profileActionContainer');
+
+            if (isEnable) {
+                editBtn.classList.add('d-none');
+                actionContainer.classList.remove('d-none');
+            } else {
+                editBtn.classList.remove('d-none');
+                actionContainer.classList.add('d-none');
+            }
+        }
+
+        function saveProfile(event) {
+            event.preventDefault();
+            let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
+            
+            profiles[currentUser] = {
+                username: currentUser,
+                dob: document.getElementById('profileDob').value,
+                hometown: document.getElementById('profileHometown').value,
+                address: document.getElementById('profileAddress').value,
+                joinDate: document.getElementById('profileJoinDate').value,
+                email: document.getElementById('profileEmail').value,
+                bankAcc: document.getElementById('profileBankAcc').value
+            };
+
+            localStorage.setItem('saved_profiles', JSON.stringify(profiles));
+            alert('Lưu thông tin cá nhân thành công!');
+            toggleProfileEdit(false);
+        }
+
+        function clearProfileData() {
+            if (confirm('Bạn có chắc muốn xóa toàn bộ thông tin cá nhân đã nhập không?')) {
+                document.getElementById('profileDob').value = '';
+                document.getElementById('profileHometown').value = '';
+                document.getElementById('profileAddress').value = '';
+                document.getElementById('profileEmail').value = '';
+                document.getElementById('profileBankAcc').value = '';
+
+                let profiles = JSON.parse(localStorage.getItem('saved_profiles')) || {};
+                if (profiles[currentUser]) {
+                    profiles[currentUser].dob = '';
+                    profiles[currentUser].hometown = '';
+                    profiles[currentUser].address = '';
+                    profiles[currentUser].email = '';
+                    profiles[currentUser].bankAcc = '';
+                    localStorage.setItem('saved_profiles', JSON.stringify(profiles));
+                }
+                alert('Đã xóa thông tin thành công!');
             }
         }
 
@@ -336,10 +612,8 @@
                 emptyMessageEl.classList.add('d-none');
                 [...transactions].reverse().forEach((item, index) => {
                     const originalIndex = transactions.length - 1 - index;
-                    
                     const row = document.createElement('tr');
                     row.className = 'history-item';
-                    
                     const isDeposit = item.type === 'deposit';
                     const amountClass = isDeposit ? 'text-success fw-bold' : 'text-danger fw-bold';
                     const amountSign = isDeposit ? '+' : '-';
@@ -362,7 +636,6 @@
         function addMoney(type) {
             const amountInput = document.getElementById('amount');
             const noteInput = document.getElementById('note');
-            
             const amount = parseFloat(amountInput.value);
 
             if (isNaN(amount) || amount < 10000) {
@@ -413,7 +686,7 @@
             }
         }
 
-        // Khởi chạy khi tải trang
+        // Khởi chạy hệ thống
         checkAuthState();
     </script>
 </body>
