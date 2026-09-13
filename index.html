@@ -36,21 +36,57 @@
 </head>
 <body>
 
-    <!-- KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <!-- KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ (TÁCH RIÊNG TAB) -->
     <div id="authSection" class="container mt-5" style="max-width: 450px;">
         <div class="card piggy-card p-4">
             <h3 class="text-center text-danger mb-4"><i class="fa-solid fa-piggy-bank"></i> Heo Đất Tiết Kiệm</h3>
-            <div class="mb-3">
-                <label class="form-label">Tên tài khoản</label>
-                <input type="text" id="usernameInput" class="form-control" placeholder="Nhập tên tài khoản...">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" id="passwordInput" class="form-control" placeholder="Nhập mật khẩu...">
-            </div>
-            <div class="d-grid gap-2">
-                <button onclick="handleLogin()" class="btn btn-danger">Đăng Nhập</button>
-                <button onclick="handleRegister()" class="btn btn-outline-secondary">Đăng Ký</button>
+            
+            <!-- Tabs chuyển đổi Đăng Nhập / Đăng Ký -->
+            <ul class="nav nav-pills nav-fill mb-4" id="authTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="login-tab-btn" data-bs-toggle="tab" data-bs-target="#loginFormPane" type="button">Đăng Nhập</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="register-tab-btn" data-bs-toggle="tab" data-bs-target="#registerFormPane" type="button">Đăng Ký</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="authTabContent">
+                <!-- FORM ĐĂNG NHẬP -->
+                <div class="tab-pane fade show active" id="loginFormPane" role="tabpanel">
+                    <div class="mb-3">
+                        <label class="form-label">Tên tài khoản</label>
+                        <input type="text" id="loginUser" class="form-control" placeholder="Nhập tên tài khoản...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <input type="password" id="loginPass" class="form-control" placeholder="Nhập mật khẩu...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPass', this)"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button onclick="handleLogin()" class="btn btn-danger py-2">Đăng Nhập</button>
+                    </div>
+                </div>
+
+                <!-- FORM ĐĂNG KÝ -->
+                <div class="tab-pane fade" id="registerFormPane" role="tabpanel">
+                    <div class="mb-3">
+                        <label class="form-label">Tên tài khoản mới</label>
+                        <input type="text" id="regUser" class="form-control" placeholder="Chọn tên tài khoản...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <input type="password" id="regPass" class="form-control" placeholder="Tạo mật khẩu...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('regPass', this)"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button onclick="handleRegister()" class="btn btn-success py-2">Đăng Ký Tài Khoản</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -288,8 +324,23 @@
         let transactions = [];
         let imagesList = [];
         let trashList = [];
-        let extraStorageGB = 0; // Dung lượng bổ sung thêm (GB)
+        let extraStorageGB = 0;
         let profileData = {};
+
+        // Hiển thị / Ẩn mật khẩu
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -309,16 +360,16 @@
         }
 
         function handleRegister() {
-            const user = document.getElementById('usernameInput').value.trim();
-            const pass = document.getElementById('passwordInput').value.trim();
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
             if (!user || !pass) {
-                alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!");
+                alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu đăng ký!");
                 return;
             }
 
             db.ref('users/' + user).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    alert("Tài khoản đã tồn tại!");
+                    alert("Tài khoản đã tồn tại, vui lòng chọn tên khác!");
                 } else {
                     db.ref('users/' + user).set({
                         password: pass,
@@ -328,15 +379,26 @@
                         extraStorageGB: 0,
                         profile: { bank: '', email: '' }
                     }, (error) => {
-                        if (!error) alert("Đăng ký thành công!");
+                        if (!error) {
+                            alert("Đăng ký thành công! Bạn có thể chuyển sang tab Đăng Nhập.");
+                            document.getElementById('regUser').value = '';
+                            document.getElementById('regPass').value = '';
+                        } else {
+                            alert("Đăng ký thất bại!");
+                        }
                     });
                 }
             });
         }
 
         function handleLogin() {
-            const user = document.getElementById('usernameInput').value.trim();
-            const pass = document.getElementById('passwordInput').value.trim();
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            if (!user || !pass) {
+                alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!");
+                return;
+            }
+
             db.ref('users/' + user).once('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.password === pass) {
@@ -344,7 +406,7 @@
                     localStorage.setItem('piggy_current_user', user);
                     checkAuthState();
                 } else {
-                    alert("Sai tài khoản hoặc mật khẩu!");
+                    alert("Sai tên tài khoản hoặc mật khẩu!");
                 }
             });
         }
@@ -356,7 +418,6 @@
         }
 
         function loadDataFromFirebase() {
-            // Tự động dọn dẹp thùng rác quá 30 ngày mỗi lần đăng nhập
             db.ref('users/' + currentUser).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -369,9 +430,7 @@
                     document.getElementById('profileBank').value = profileData.bank || '';
                     document.getElementById('profileEmail').value = profileData.email || '';
 
-                    // Kiểm tra tự động xóa ảnh trong thùng rác sau 30 ngày
                     cleanupTrash();
-
                     updateUI();
                     updateGalleryUI();
                     updateTrashUI();
@@ -455,7 +514,7 @@
             }
         }
 
-        // --- KHOẢNH KHẮC & DUNG LƯỢNG (2GB Mặc định) ---
+        // --- KHOẢNH KHẮC & THÙNG RÁC ---
         function uploadImage() {
             const fileInput = document.getElementById('imageInput');
             const captionInput = document.getElementById('imageCaption');
@@ -466,11 +525,9 @@
             }
 
             const file = fileInput.files[0];
-            const fileSizeMB = file.size / (1024 * 1024); // Kích thước MB
-
-            // Tính dung lượng hiện tại đang chiếm dụng
+            const fileSizeMB = file.size / (1024 * 1024);
             let currentUsedMB = calculateCurrentStorageMB();
-            let totalLimitMB = (2 + extraStorageGB) * 1024; // 2GB mặc định + extra
+            let totalLimitMB = (2 + extraStorageGB) * 1024;
 
             if (currentUsedMB + fileSizeMB > totalLimitMB) {
                 alert(`Dung lượng lưu trữ đã đầy (${(currentUsedMB/1024).toFixed(2)} GB / ${2 + extraStorageGB} GB). Vui lòng nâng cấp thêm dung lượng!`);
@@ -514,7 +571,6 @@
             bar.className = percent > 85 ? 'progress-bar bg-danger' : 'progress-bar bg-success';
         }
 
-        // Chuyển ảnh vào thùng rác (lưu 30 ngày)
         function moveToTrash(id) {
             const imgIndex = imagesList.findIndex(img => img.id === id);
             if (imgIndex !== -1) {
@@ -523,7 +579,7 @@
                 
                 trashList.unshift({
                     ...img,
-                    deletedAt: Date.now() // Thời điểm đưa vào thùng rác
+                    deletedAt: Date.now()
                 });
 
                 db.ref('users/' + currentUser + '/images').set(imagesList);
@@ -531,7 +587,6 @@
             }
         }
 
-        // Khôi phục từ thùng rác
         function restoreFromTrash(id) {
             const idx = trashList.findIndex(img => img.id === id);
             if (idx !== -1) {
@@ -545,7 +600,6 @@
             }
         }
 
-        // Xóa vĩnh viễn 1 ảnh trong thùng rác
         function deletePermanent(id) {
             if (confirm("Xóa vĩnh viễn ảnh này?")) {
                 trashList = trashList.filter(img => img.id !== id);
@@ -560,22 +614,17 @@
             }
         }
 
-        // Tự động quét và xóa ảnh trong thùng rác quá 30 ngày
         function cleanupTrash() {
             const now = Date.now();
             const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
             const originalLength = trashList.length;
 
-            trashList = trashList.filter(img => {
-                return (now - (img.deletedAt || now)) < thirtyDaysMs;
-            });
-
+            trashList = trashList.filter(img => (now - (img.deletedAt || now)) < thirtyDaysMs);
             if (trashList.length !== originalLength) {
                 db.ref('users/' + currentUser + '/trash').set(trashList);
             }
         }
 
-        // Xem chi tiết ảnh (Modal)
         function viewImageModal(url, caption, time) {
             document.getElementById('modalImageSrc').src = url;
             document.getElementById('modalImageCaption').textContent = caption;
@@ -655,7 +704,6 @@
 
         function calculateUpgradeStorage() {
             const money = parseFloat(document.getElementById('customMoney').value) || 0;
-            // Cứ 10.000đ = 1 GB
             const gbGained = Math.floor(money / 10000);
             document.getElementById('previewGB').textContent = `${gbGained} GB`;
         }
