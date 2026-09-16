@@ -8,8 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
     
     <!-- Firebase SDK qua CDN -->
     <script type="module">
@@ -44,7 +42,6 @@
         .image-card img { height: 150px; object-fit: cover; transition: transform 0.2s; }
         .image-card img:hover { transform: scale(1.02); }
 
-        /* CSS Tùy chỉnh cho khung xem ảnh phóng to (Lightbox) độc lập */
         #customImageViewer {
             display: none;
             position: fixed;
@@ -69,9 +66,67 @@
 </head>
 <body>
 
-    <div class="container py-4">
-        <h2 class="text-center mb-3 fw-bold text-primary"><i class="fa-solid fa-piggy-bank"></i> Quản Lý Dòng Tiền & Lưu Trữ (Cloud)</h2>
+    <!-- THANH HEADER VỚI MENU 3 VẠCH -->
+    <nav class="navbar navbar-light bg-white shadow-sm px-3 mb-4">
+        <div class="container-fluid">
+            <button class="btn btn-outline-primary border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <i class="fa-solid fa-bars fs-4"></i>
+            </button>
+            <span class="navbar-brand mb-0 h1 fw-bold text-primary mx-auto">
+                <i class="fa-solid fa-piggy-bank"></i> Quản Lý Dòng Tiền
+            </span>
+        </div>
+    </nav>
 
+    <!-- MENU 3 VẠCH (OFFCANVAS SIDEBAR) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+        <div class="offcanvas-header bg-primary text-white">
+            <h5 class="offcanvas-title" id="sidebarMenuLabel"><i class="fa-solid fa-bars me-2"></i> Menu Tính Năng</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column justify-content-between">
+            <ul class="nav nav-pills flex-column gap-2">
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold rounded-pill shadow-sm" id="tabHomeBtn" href="#" onclick="switchTab('home')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-house me-2"></i> Giao Dịch
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark rounded-pill shadow-sm bg-light" id="tabHistoryBtn" href="#" onclick="switchTab('history')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Xem Lịch Sử
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark rounded-pill shadow-sm bg-light" id="tabProfileBtn" href="#" onclick="switchTab('profile')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-user-gear me-2"></i> Thông Tin Cá Nhân
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark rounded-pill shadow-sm bg-light" id="tabImagesBtn" href="#" onclick="switchTab('images')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-images me-2"></i> Kho Ảnh & Chụp Ảnh
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark rounded-pill shadow-sm bg-light" id="tabServiceBtn" href="#" onclick="switchTab('service')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-store me-2"></i> Dịch Vụ & Mua Dung Lượng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark rounded-pill shadow-sm bg-light" id="tabTrashBtn" href="#" onclick="switchTab('trash')" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-trash-can me-2"></i> Thùng Rác <span id="trashBadge" class="badge bg-danger ms-1">0</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="border-top pt-3">
+                <div class="small text-muted mb-2">Xin chào, <strong id="userDisplayEmailSidebar" class="text-primary"></strong></div>
+                <button onclick="logout()" class="btn btn-outline-danger w-100 fw-bold btn-sm">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng Xuất
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-2">
         <!-- KHU VỰC 1: ĐĂNG NHẬP / ĐĂNG KÝ -->
         <div id="authSection" class="row justify-content-center">
             <div class="col-md-6">
@@ -121,23 +176,6 @@
 
         <!-- KHU VỰC 2: ỨNG DỤNG CHÍNH -->
         <div id="appSection" class="d-none">
-            <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded-4 shadow-sm">
-                <div>
-                    <span class="text-muted">Xin chào, </span>
-                    <strong id="userDisplayEmail" class="text-primary"></strong>
-                </div>
-                <button onclick="logout()" class="btn btn-outline-secondary btn-sm fw-bold">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
-                </button>
-            </div>
-
-            <ul class="nav nav-pills justify-content-center mb-4 gap-2 flex-wrap">
-                <li class="nav-item"><button class="nav-link active fw-bold px-3 rounded-pill shadow-sm" id="tabHomeBtn" onclick="switchTab('home')"><i class="fa-solid fa-house me-1"></i> Giao Dịch</button></li>
-                <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabHistoryBtn" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left me-1"></i> Xem Lịch Sử</button></li>
-                <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabProfileBtn" onclick="switchTab('profile')"><i class="fa-solid fa-user-gear me-1"></i> Thông Tin Cá Nhân</button></li>
-                <li class="nav-item"><button class="nav-link fw-bold px-3 rounded-pill shadow-sm text-dark bg-white border" id="tabImagesBtn" onclick="switchTab('images')"><i class="fa-solid fa-images me-1"></i> Kho Ảnh</button></li>
-            </ul>
-
             <div class="row justify-content-center">
                 <div class="col-md-8 mb-4" id="balanceCardContainer">
                     <div class="card card-summary shadow-sm p-4 text-center">
@@ -206,24 +244,140 @@
                     </div>
                 </div>
 
-                <!-- TAB 4: Kho ảnh -->
+                <!-- TAB 4: Kho ảnh & Chụp ảnh trực tiếp -->
                 <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionImages">
-                    <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
-                        <h5 class="mb-3 text-primary">Tải Ảnh Lên Kho</h5>
-                        <input type="file" class="form-control mb-3" id="imageInput" accept="image/*">
-                        <button onclick="uploadImage()" class="btn btn-primary fw-bold w-100 py-2"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Tải Ảnh Lên Cloud</button>
+                    <div class="card shadow-sm p-3 border-0 rounded-4 mb-3 bg-light">
+                        <div class="d-flex justify-content-between mb-1 small fw-bold">
+                            <span>Dung lượng lưu trữ</span>
+                            <span id="storageText">0 MB / 3072 MB (3 GB)</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div id="storageProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
                     </div>
+
                     <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
-                        <h5 class="mb-3">Danh Sách Ảnh</h5>
+                        <h5 class="mb-3 text-primary"><i class="fa-solid fa-camera me-2"></i> Chụp Ảnh Hoặc Tải Lên</h5>
+                        <div class="d-flex gap-2 mb-3">
+                            <button onclick="startCamera()" class="btn btn-success flex-fill fw-bold"><i class="fa-solid fa-camera-retro me-1"></i> Mở Camera Chụp Ảnh</button>
+                            <input type="file" id="imageInput" accept="image/*" class="d-none" onchange="handleFileSelect(event)">
+                            <button onclick="document.getElementById('imageInput').click()" class="btn btn-outline-primary flex-fill fw-bold"><i class="fa-solid fa-upload me-1"></i> Tải Ảnh Từ Máy</button>
+                        </div>
+
+                        <div id="cameraContainer" class="d-none text-center mb-3">
+                            <video id="cameraStream" autoplay playsinline class="w-100 rounded mb-2" style="max-height: 300px; background: #000;"></video>
+                            <canvas id="snapshotCanvas" class="d-none"></canvas>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <button onclick="capturePhoto()" class="btn btn-primary fw-bold"><i class="fa-solid fa-circle-dot me-1"></i> Chụp Ngay</button>
+                                <button onclick="stopCamera()" class="btn btn-secondary fw-bold">Đóng Camera</button>
+                            </div>
+                        </div>
+
+                        <div id="previewContainer" class="d-none text-center p-3 border rounded bg-white mb-3">
+                            <h6 class="text-secondary mb-2">Xem Trước Ảnh</h6>
+                            <img id="previewImage" src="" alt="Preview" class="img-fluid rounded mb-3" style="max-height: 250px; object-fit: contain;">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button onclick="saveCapturedPhoto()" class="btn btn-success fw-bold px-4"><i class="fa-solid fa-check me-1"></i> Lưu Ảnh</button>
+                                <button onclick="discardCapturedPhoto()" class="btn btn-danger fw-bold px-4"><i class="fa-solid fa-xmark me-1"></i> Xóa (Hủy Bỏ)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
+                        <h5 class="mb-3">Kho Ảnh Của Bạn</h5>
                         <div class="row" id="imageListContainer"></div>
-                        <p id="emptyImageMsg" class="text-center text-muted mt-3 d-none">Chưa có ảnh nào.</p>
+                        <p id="emptyImageMsg" class="text-center text-muted mt-3 d-none">Chưa có ảnh nào trong kho.</p>
+                    </div>
+                </div>
+
+                <!-- TAB 5: Dịch vụ & Mua dung lượng -->
+                <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionService">
+                    <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
+                        <h5 class="mb-3 text-primary"><i class="fa-solid fa-store me-2"></i> Cửa Hàng Dịch Vụ Lưu Trữ</h5>
+                        <p class="text-muted small">Gói miễn phí của bạn bao gồm 3GB. Mua thêm dung lượng lưu trữ với giá ưu đãi: <strong>5.000 VNĐ / 1 GB</strong>.</p>
+                        
+                        <div class="card border-primary mb-3 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold text-primary"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Nâng Cấp Dung Lượng Cloud</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Chọn số lượng GB muốn mua thêm:</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="gbAmountInput" value="1" min="1" max="100" oninput="calculatePrice()">
+                                        <span class="input-group-text">GB</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 p-3 bg-light rounded">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small text-muted">Đơn giá:</span>
+                                        <span class="fw-bold">5.000 đ / GB</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small text-muted">Tổng tiền thanh toán:</span>
+                                        <h4 class="text-success fw-bold mb-0" id="totalPriceDisplay">5.000 đ</h4>
+                                    </div>
+                                </div>
+
+                                <button onclick="openPaymentModal()" class="btn btn-primary w-100 fw-bold py-2"><i class="fa-solid fa-qrcode me-1"></i> Tạo QR Chuyển Khoản Ngân Hàng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: Thùng rác -->
+                <div class="col-md-8 mb-4 tab-content-item d-none" id="sectionTrash">
+                    <div class="card shadow-sm p-4 border-0 rounded-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 text-danger"><i class="fa-solid fa-trash-can me-2"></i> Thùng Rác</h5>
+                            <button onclick="emptyTrash()" class="btn btn-outline-danger btn-sm">Dọn Sạch Thùng Rác</button>
+                        </div>
+                        <div class="row" id="trashListContainer"></div>
+                        <p id="emptyTrashMsg" class="text-center text-muted mt-3 d-none">Thùng rác trống.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Khung Phóng To Ảnh (Lightbox tùy chỉnh hoạt động 100%) -->
+    <!-- Modal Hiển Thị Mã QR & Xác Nhận Chuyển Khoản -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-qrcode me-2"></i> Thanh Toán Vietcombank</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="small text-muted mb-2">Quét mã QR để chuyển khoản. Sau khi chuyển xong, vui lòng bấm xác nhận để chờ hệ thống kiểm tra tiền về:</p>
+                    
+                    <div class="p-2 border rounded bg-white d-inline-block mb-3 shadow-sm">
+                        <img id="vietQrImage" src="" alt="QR Vietcombank" style="max-width: 240px; height: auto;">
+                    </div>
+
+                    <div class="alert alert-warning text-start small mb-3">
+                        <div class="fw-bold mb-1"><i class="fa-solid fa-circle-info me-1"></i> Thông tin chuyển khoản:</div>
+                        <div>- Ngân hàng: <strong>Vietcombank (VCB)</strong></div>
+                        <div>- Số tài khoản: <strong class="text-primary">1051635730</strong></div>
+                        <div>- Chủ tài khoản: <strong class="text-uppercase">DINH QUOC NAM</strong></div>
+                        <div>- Số tiền: <strong class="text-danger" id="qrAmountText">5.000 đ</strong></div>
+                        <div>- Nội dung CK: <strong class="text-success" id="qrMemoText">MUA 1GB</strong></div>
+                    </div>
+
+                    <div class="mb-3 text-start">
+                        <label class="form-label small fw-bold text-secondary">Tải lên ảnh chụp màn hình (Bill) chuyển khoản (nếu có):</label>
+                        <input type="file" id="billImageInput" class="form-control form-control-sm" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-success fw-bold" onclick="confirmPaymentSuccess()"><i class="fa-solid fa-check me-1"></i> Tôi Đã Chuyển Khoản Xong</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khung Phóng To Ảnh (Lightbox) -->
     <div id="customImageViewer" onclick="closeImageViewer()">
         <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-4" aria-label="Close" onclick="closeImageViewer()"></button>
         <img id="viewerImg" src="" alt="Zoom Image">
@@ -253,6 +407,11 @@
         let currentUser = localStorage.getItem('currentUser') || null;
         let transactions = [];
         let userImages = [];
+        let trashImages = [];
+        let purchasedGB = 0;
+        let mediaStream = null;
+        let tempCapturedDataUrl = null;
+        let pendingGB = 1;
 
         window.addEventListener('firebase-ready', () => {
             checkAuthState();
@@ -263,7 +422,7 @@
             if (currentUser) {
                 document.getElementById('authSection').classList.add('d-none');
                 document.getElementById('appSection').classList.remove('d-none');
-                document.getElementById('userDisplayEmail').textContent = currentUser;
+                document.getElementById('userDisplayEmailSidebar').textContent = currentUser;
                 loadUserDataFromFirebase();
             } else {
                 document.getElementById('authSection').classList.remove('d-none');
@@ -277,20 +436,27 @@
                 const data = snapshot.val();
                 transactions = data.transactions || [];
                 userImages = data.images || [];
+                trashImages = data.trash || [];
+                purchasedGB = data.purchasedGB || 0;
             } else {
                 transactions = [];
                 userImages = [];
+                trashImages = [];
+                purchasedGB = 0;
             }
             updateUI();
             loadProfileData();
             updateImageUI();
+            updateTrashUI();
         }
 
         async function syncDataToFirebase() {
             if (!currentUser) return;
             await window.dbSet(window.dbRef(window.db, 'users/' + currentUser), {
                 transactions: transactions,
-                images: userImages
+                images: userImages,
+                trash: trashImages,
+                purchasedGB: purchasedGB
             });
         }
 
@@ -425,26 +591,84 @@
             }
         }
 
-        function uploadImage() {
-            const fileInput = document.getElementById('imageInput');
-            if (fileInput.files.length === 0) {
-                alert('Vui lòng chọn một hình ảnh!');
-                return;
+        async function startCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                const videoEl = document.getElementById('cameraStream');
+                videoEl.srcObject = mediaStream;
+                document.getElementById('cameraContainer').classList.remove('d-none');
+                document.getElementById('previewContainer').classList.add('d-none');
+            } catch (err) {
+                alert('Không thể truy cập camera: ' + err.message);
             }
-            const file = fileInput.files[0];
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            document.getElementById('cameraContainer').classList.add('d-none');
+        }
+
+        function capturePhoto() {
+            const videoEl = document.getElementById('cameraStream');
+            const canvas = document.getElementById('snapshotCanvas');
+            canvas.width = videoEl.videoWidth || 640;
+            canvas.height = videoEl.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+            
+            tempCapturedDataUrl = canvas.toDataURL('image/png');
+            stopCamera();
+
+            document.getElementById('previewImage').src = tempCapturedDataUrl;
+            document.getElementById('previewContainer').classList.remove('d-none');
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                userImages.push({ id: Date.now(), name: file.name, data: e.target.result });
-                fileInput.value = '';
-                updateImageUI();
+                tempCapturedDataUrl = e.target.result;
+                document.getElementById('previewImage').src = tempCapturedDataUrl;
+                document.getElementById('previewContainer').classList.remove('d-none');
             };
             reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function saveCapturedPhoto() {
+            if (!tempCapturedDataUrl) return;
+            const name = "Photo_" + Date.now() + ".png";
+            userImages.push({ id: Date.now(), name: name, data: tempCapturedDataUrl });
+            tempCapturedDataUrl = null;
+            document.getElementById('previewContainer').classList.add('d-none');
+            updateImageUI();
+        }
+
+        function discardCapturedPhoto() {
+            if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn ảnh này (không lưu vào kho)?')) {
+                tempCapturedDataUrl = null;
+                document.getElementById('previewContainer').classList.add('d-none');
+            }
         }
 
         function updateImageUI() {
             const imageListContainer = document.getElementById('imageListContainer');
             imageListContainer.innerHTML = '';
             
+            const totalAllowedMB = 3072 + (purchasedGB * 1024);
+            const usedMB = Math.round(userImages.length * 0.5 * 10) / 10;
+            const percent = Math.min(100, (usedMB / totalAllowedMB) * 100);
+
+            document.getElementById('storageText').textContent = `${usedMB} MB / ${totalAllowedMB} MB (${(totalAllowedMB/1024).toFixed(1)} GB)`;
+            const bar = document.getElementById('storageProgressBar');
+            bar.style.width = percent + '%';
+            bar.setAttribute('aria-valuenow', percent);
+            bar.className = percent > 85 ? "progress-bar bg-danger" : "progress-bar bg-primary";
+
             if (userImages.length === 0) {
                 document.getElementById('emptyImageMsg').classList.remove('d-none');
             } else {
@@ -461,8 +685,8 @@
                                     <a href="${img.data}" download="${img.name}" class="btn btn-outline-success btn-sm flex-fill" title="Tải ảnh về máy">
                                         <i class="fa-solid fa-download"></i> Tải
                                     </a>
-                                    <button onclick="deleteImage(${img.id})" class="btn btn-outline-danger btn-sm" title="Xóa ảnh">
-                                        <i class="fa-solid fa-trash"></i>
+                                    <button onclick="deleteImageForever(${img.id})" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn">
+                                        <i class="fa-solid fa-trash"></i> Xóa
                                     </button>
                                 </div>
                             </div>
@@ -471,6 +695,88 @@
                 });
             }
             syncDataToFirebase();
+        }
+
+        function deleteImageForever(id) {
+            if (confirm('Bạn có chắc muốn xóa vĩnh viễn ảnh này? Thao tác không thể hoàn tác!')) {
+                userImages = userImages.filter(i => i.id != id);
+                updateImageUI();
+            }
+        }
+
+        // --- THANH TOÁN QR VIETCOMBANK & CHỜ XÁC NHẬN ---
+        function calculatePrice() {
+            const gb = parseInt(document.getElementById('gbAmountInput').value) || 1;
+            pendingGB = gb;
+            const price = gb * 5000;
+            document.getElementById('totalPriceDisplay').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
+        function openPaymentModal() {
+            const gb = parseInt(document.getElementById('gbAmountInput').value) || 1;
+            pendingGB = gb;
+            const price = gb * 5000;
+            const memo = `MUA ${gb}GB ${currentUser}`.toUpperCase();
+
+            // Link VietQR chuẩn cho tài khoản Vietcombank của bạn (1051635730 - DINH QUOC NAM)
+            const qrUrl = `https://img.vietqr.io/image/VCB-1051635730-compact2.png?amount=${price}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent('DINH QUOC NAM')}`;
+
+            document.getElementById('vietQrImage').src = qrUrl;
+            document.getElementById('qrAmountText').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+            document.getElementById('qrMemoText').textContent = memo;
+            document.getElementById('billImageInput').value = '';
+
+            const myModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            myModal.show();
+        }
+
+        function confirmPaymentSuccess() {
+            // Đóng Modal thông báo
+            const modalEl = document.getElementById('paymentModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // Gửi thông báo chờ kiểm tra, KHÔNG cộng GB tự động để tránh gian lận
+            alert(`Đã gửi yêu cầu mua ${pendingGB}GB thành công!\n\nHệ thống sẽ kiểm tra tài khoản Vietcombank (1051635730) của bạn. Dung lượng sẽ được tự động cộng sau khi nhận được tiền.`);
+        }
+
+        function updateTrashUI() {
+            const trashListContainer = document.getElementById('trashListContainer');
+            const trashBadge = document.getElementById('trashBadge');
+            trashListContainer.innerHTML = '';
+            trashBadge.textContent = trashImages.length;
+
+            if (trashImages.length === 0) {
+                document.getElementById('emptyTrashMsg').classList.remove('d-none');
+            } else {
+                document.getElementById('emptyTrashMsg').classList.add('d-none');
+                trashImages.forEach(img => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="card h-100 shadow-sm image-card border-danger">
+                            <img src="${img.data}" class="card-img-top" style="cursor: pointer;" onclick="openImageViewer('${img.data}', '${img.name}')">
+                            <div class="card-body p-2 d-flex flex-column justify-content-between">
+                                <p class="small text-truncate mb-2" title="${img.name}">${img.name}</p>
+                                <button onclick="deleteTrashForever(${img.id})" class="btn btn-outline-danger btn-sm w-100">Xóa Vĩnh Viễn</button>
+                            </div>
+                        </div>`;
+                    trashListContainer.appendChild(col);
+                });
+            }
+            syncDataToFirebase();
+        }
+
+        function deleteTrashForever(id) {
+            trashImages = trashImages.filter(i => i.id != id);
+            updateTrashUI();
+        }
+
+        function emptyTrash() {
+            if (confirm('Dọn sạch thùng rác?')) {
+                trashImages = [];
+                updateTrashUI();
+            }
         }
 
         function openImageViewer(url, name) {
@@ -485,25 +791,34 @@
             document.getElementById('customImageViewer').style.display = 'none';
         }
 
-        function deleteImage(id) {
-            if (confirm('Bạn có chắc muốn xóa ảnh này khỏi kho?')) {
-                userImages = userImages.filter(i => i.id != id);
-                updateImageUI();
-            }
-        }
-
         function logout() {
             localStorage.removeItem('currentUser');
+            stopCamera();
             checkAuthState();
         }
 
         function switchTab(name) {
+            stopCamera();
             document.querySelectorAll('.tab-content-item').forEach(el => el.classList.add('d-none'));
             document.getElementById('balanceCardContainer').classList.remove('d-none');
+            
+            document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+                link.classList.remove('active', 'bg-white', 'text-white');
+                link.classList.add('bg-light', 'text-dark');
+            });
+
+            let activeLink = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1) + 'Btn');
+            if(activeLink) {
+                activeLink.classList.remove('bg-light', 'text-dark');
+                activeLink.classList.add('active', 'bg-primary', 'text-white');
+            }
+
             if (name === 'home') document.getElementById('sectionHome').classList.remove('d-none');
             if (name === 'history') document.getElementById('sectionHistory').classList.remove('d-none');
             if (name === 'profile') { document.getElementById('sectionProfile').classList.remove('d-none'); document.getElementById('balanceCardContainer').classList.add('d-none'); }
             if (name === 'images') { document.getElementById('sectionImages').classList.remove('d-none'); document.getElementById('balanceCardContainer').classList.add('d-none'); }
+            if (name === 'service') { document.getElementById('sectionService').classList.remove('d-none'); document.getElementById('balanceCardContainer').classList.add('d-none'); }
+            if (name === 'trash') { document.getElementById('sectionTrash').classList.remove('d-none'); document.getElementById('balanceCardContainer').classList.add('d-none'); }
         }
 
         function toggleAuthMode(e) {
