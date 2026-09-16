@@ -325,6 +325,29 @@
                                 <button onclick="openPaymentModal()" class="btn btn-primary w-100 fw-bold py-2"><i class="fa-solid fa-qrcode me-1"></i> Tạo QR Chuyển Khoản Ngân Hàng</button>
                             </div>
                         </div>
+
+                        <!-- Lịch sử mua dung lượng -->
+                        <div class="card border-0 shadow-sm mt-4">
+                            <div class="card-header bg-white fw-bold"><i class="fa-solid fa-history me-1"></i> Lịch Sử Mua Dung Lượng</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Thời gian mua</th>
+                                                <th>Dung lượng</th>
+                                                <th>Số tiền</th>
+                                                <th class="text-center">Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="userOrderHistoryList">
+                                            <tr><td colspan="4" class="text-center text-muted">Chưa có lịch sử mua hàng.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -554,6 +577,7 @@
                 document.getElementById('appSection').classList.remove('d-none');
                 document.getElementById('userDisplayEmailSidebar').textContent = currentUser;
                 loadUserDataFromFirebase();
+                listenUserOrders();
             } else {
                 document.getElementById('authSection').classList.remove('d-none');
                 document.getElementById('appSection').classList.add('d-none');
@@ -880,6 +904,50 @@
 
             await window.dbSet(window.dbRef(window.db, 'orders/' + orderId), orderData);
             alert(`Đã tạo đơn mua ${pendingGB}GB thành công!\n\nVui lòng chờ Quản Trị Viên kiểm tra tiền và duyệt đơn.`);
+        }
+
+        function listenUserOrders() {
+            if (!currentUser) return;
+            const ordersRef = window.dbRef(window.db, 'orders');
+            window.dbOnValue(ordersRef, (snapshot) => {
+                const tbody = document.getElementById('userOrderHistoryList');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!snapshot.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có lịch sử mua hàng.</td></tr>';
+                    return;
+                }
+
+                let hasOrder = false;
+                snapshot.forEach((child) => {
+                    const order = child.val();
+                    if (order.userId === currentUser) {
+                        hasOrder = true;
+                        let statusBadge = '';
+                        if (order.status === 'pending') {
+                            statusBadge = '<span class="badge bg-warning text-dark">Đang chờ duyệt</span>';
+                        } else if (order.status === 'completed') {
+                            statusBadge = '<span class="badge bg-success">Đã thanh toán thành công</span>';
+                        } else if (order.status === 'rejected') {
+                            statusBadge = '<span class="badge bg-danger">Đã từ chối</span>';
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><small class="text-muted">${order.date}</small></td>
+                                <td class="fw-bold text-primary">+${order.gb} GB</td>
+                                <td class="fw-bold">${Number(order.amount).toLocaleString()} đ</td>
+                                <td class="text-center">${statusBadge}</td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                if (!hasOrder) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Chưa có lịch sử mua hàng.</td></tr>';
+                }
+            });
         }
 
         function updateTrashUI() {
