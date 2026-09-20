@@ -960,7 +960,7 @@
             }
         }
 
-        // --- LOGIC THƯ MỤC CHECKLIST (TEXT HOẶC ẢNH, NHIỀU HOẶC 1 LẦN DUY NHẤT) ---
+        // --- LOGIC THƯ MỤC CHECKLIST ---
         function createNewChecklistFolder(event) {
             event.preventDefault();
             const name = document.getElementById('folderName').value.trim();
@@ -970,7 +970,7 @@
             checklistFolders.push({
                 id: Date.now(),
                 name: name,
-                mode: mode, // 'multiple' hoặc 'single'
+                mode: mode,
                 items: []
             });
             document.getElementById('folderName').value = '';
@@ -1011,12 +1011,10 @@
             if(!folder) return;
 
             if(folder.mode === 'single') {
-                // Cơ chế chỉ check 1 cái duy nhất trong thư mục
                 folder.items.forEach(item => {
                     item.checked = (item.id === itemId);
                 });
             } else {
-                // Cơ chế check nhiều cái cùng lúc
                 const item = folder.items.find(i => i.id === itemId);
                 if(item) {
                     item.checked = !item.checked;
@@ -1042,7 +1040,7 @@
                 emptyMsg.classList.remove('d-none');
             } else {
                 emptyMsg.classList.add('d-none');
-                checklistFolders.forEach((folder, fIndex) => {
+                checklistFolders.forEach((folder) => {
                     const div = document.createElement('div');
                     div.className = 'accordion-item mb-2 border rounded shadow-sm';
                     
@@ -1089,7 +1087,7 @@
             syncDataToFirebase();
         }
 
-        // --- THANH TOÁN QR VIETCOMBANK & TẠO ĐƠN CHỜ DUYỆT ---
+        // --- THANH TOÁN QR & ĐƠN HÀNG ---
         function calculatePrice() {
             const gb = parseInt(document.getElementById('gbAmountInput').value) || 1;
             pendingGB = gb;
