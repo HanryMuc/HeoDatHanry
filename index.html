@@ -960,20 +960,23 @@
             }
         }
 
-        // --- LOGIC THƯ MỤC CHECKLIST ---
+        // --- LOGIC THƯ MỤC CHECKLIST (ĐÃ TỐI ƯU VÀ SỬA LỖI) ---
         function createNewChecklistFolder(event) {
             event.preventDefault();
-            const name = document.getElementById('folderName').value.trim();
-            const mode = document.getElementById('folderMode').value;
-            if(!name) return;
+            const nameInput = document.getElementById('folderName');
+            const modeInput = document.getElementById('folderMode');
+            
+            if(!nameInput || !nameInput.value.trim()) return;
 
-            checklistFolders.push({
+            const newFolder = {
                 id: Date.now(),
-                name: name,
-                mode: mode,
+                name: nameInput.value.trim(),
+                mode: modeInput ? modeInput.value : 'multiple',
                 items: []
-            });
-            document.getElementById('folderName').value = '';
+            };
+
+            checklistFolders.push(newFolder);
+            nameInput.value = '';
             updateChecklistsUI();
         }
 
@@ -985,22 +988,24 @@
         }
 
         function addChecklistItemPrompt(folderId) {
-            const type = prompt("Chọn loại mục checklist muốn thêm:\n1. Nhập bằng Chữ (Text)\n2. Nhập bằng Ảnh (Nhập URL hoặc dán mã ảnh từ kho)", "Chữ");
+            const type = prompt("Chọn loại mục checklist muốn thêm:\n1. Nhập bằng Chữ (Text)\n2. Nhập bằng Ảnh (URL)", "1");
             if(!type) return;
 
             const folder = checklistFolders.find(f => f.id === folderId);
             if(!folder) return;
 
-            if(type.toLowerCase().includes('ảnh') || type === '2') {
-                const imgData = prompt("Dán đường dẫn ảnh (URL) hoặc chọn từ kho ảnh của bạn:");
-                if(imgData) {
-                    folder.items.push({ id: Date.now(), type: 'image', content: imgData, checked: false });
+            if(type.trim() === '2' || type.toLowerCase().includes('ảnh')) {
+                const imgData = prompt("Dán đường dẫn ảnh (URL) vào đây:");
+                if(imgData && imgData.trim() !== '') {
+                    if(!folder.items) folder.items = [];
+                    folder.items.push({ id: Date.now(), type: 'image', content: imgData.trim(), checked: false });
                     updateChecklistsUI();
                 }
             } else {
                 const text = prompt("Nhập nội dung checklist bằng chữ:");
-                if(text) {
-                    folder.items.push({ id: Date.now(), type: 'text', content: text, checked: false });
+                if(text && text.trim() !== '') {
+                    if(!folder.items) folder.items = [];
+                    folder.items.push({ id: Date.now(), type: 'text', content: text.trim(), checked: false });
                     updateChecklistsUI();
                 }
             }
@@ -1008,7 +1013,7 @@
 
         function toggleCheckItem(folderId, itemId) {
             const folder = checklistFolders.find(f => f.id === folderId);
-            if(!folder) return;
+            if(!folder || !folder.items) return;
 
             if(folder.mode === 'single') {
                 folder.items.forEach(item => {
@@ -1025,7 +1030,7 @@
 
         function deleteChecklistItem(folderId, itemId) {
             const folder = checklistFolders.find(f => f.id === folderId);
-            if(!folder) return;
+            if(!folder || !folder.items) return;
             folder.items = folder.items.filter(i => i.id !== itemId);
             updateChecklistsUI();
         }
@@ -1036,17 +1041,17 @@
             if(!container) return;
             container.innerHTML = '';
 
-            if(checklistFolders.length === 0) {
-                emptyMsg.classList.remove('d-none');
+            if(!checklistFolders || checklistFolders.length === 0) {
+                if(emptyMsg) emptyMsg.classList.remove('d-none');
             } else {
-                emptyMsg.classList.add('d-none');
+                if(emptyMsg) emptyMsg.classList.add('d-none');
                 checklistFolders.forEach((folder) => {
                     const div = document.createElement('div');
                     div.className = 'accordion-item mb-2 border rounded shadow-sm';
                     
                     let itemsHtml = '';
-                    if(folder.items.length === 0) {
-                        itemsHtml = `<p class="text-muted small mb-3">Thư mục trống. Hãy thêm mục checklist mới.</p>`;
+                    if(!folder.items || folder.items.length === 0) {
+                        itemsHtml = `<p class="text-muted small mb-3">Thư mục trống. Hãy bấm nút thêm mục bên trên.</p>`;
                     } else {
                         folder.items.forEach(item => {
                             let contentDisplay = item.type === 'image' 
@@ -1059,7 +1064,7 @@
                                         <input class="form-check-input" type="${folder.mode === 'single' ? 'radio' : 'checkbox'}" name="folder_${folder.id}" ${item.checked ? 'checked' : ''} onchange="toggleCheckItem(${folder.id}, ${item.id})">
                                         <label class="form-check-label">${contentDisplay}</label>
                                     </div>
-                                    <button onclick="deleteChecklistItem(${folder.id}, ${item.id})" class="btn btn-sm text-danger"><i class="fa-solid fa-xmark"></i></button>
+                                    <button type="button" onclick="deleteChecklistItem(${folder.id}, ${item.id})" class="btn btn-sm text-danger"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
                             `;
                         });
@@ -1074,8 +1079,8 @@
                         <div id="collapse_${folder.id}" class="accordion-collapse collapse" data-bs-parent="#checklistFoldersContainer">
                             <div class="accordion-body bg-light">
                                 <div class="d-flex justify-content-between mb-3">
-                                    <button onclick="addChecklistItemPrompt(${folder.id})" class="btn btn-outline-primary btn-sm fw-bold"><i class="fa-solid fa-plus me-1"></i> Thêm Mục (Chữ/Ảnh)</button>
-                                    <button onclick="deleteChecklistFolder(${folder.id})" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i> Xóa Thư Mục</button>
+                                    <button type="button" onclick="addChecklistItemPrompt(${folder.id})" class="btn btn-outline-primary btn-sm fw-bold"><i class="fa-solid fa-plus me-1"></i> Thêm Mục (Chữ/Ảnh)</button>
+                                    <button type="button" onclick="deleteChecklistFolder(${folder.id})" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i> Xóa Thư Mục</button>
                                 </div>
                                 <div class="checklist-items-list">${itemsHtml}</div>
                             </div>
