@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đa Chức Năng - Quản Trị Hệ Thống</title>
+    <title>Đa Chức Năng - Hoàn Chỉnh</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js for Cash Flow graph -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -144,6 +144,122 @@
 </head>
 <body>
 
+    <!-- MÀN HÌNH CHẶN BẮT BUỘC ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-overlay" class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-dark position-fixed" style="z-index: 3000;">
+        <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 440px; width: 100%;">
+            
+            <!-- 1. FORM ĐĂNG NHẬP -->
+            <div id="form-login-box">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-cube fs-1 text-primary mb-2"></i>
+                    <h3 class="fw-bold">Đăng Nhập Hệ Thống</h3>
+                    <p class="text-muted small">Vui lòng đăng nhập để tiếp tục sử dụng.</p>
+                </div>
+                <form onsubmit="handleLoginSubmit(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên tài khoản</label>
+                        <input type="text" class="form-control" id="login-username" placeholder="Nhập tài khoản..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="login-password" placeholder="Nhập mật khẩu..." required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('login-password', this)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 small">
+                        <a href="#" class="text-decoration-none" onclick="switchAuthTab('forgot')">Quên mật khẩu?</a>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary py-2 fw-bold"><i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3 small">
+                    Chưa có tài khoản? <a href="#" class="fw-bold text-decoration-none" onclick="switchAuthTab('register')">Đăng ký ngay</a>
+                </div>
+            </div>
+
+            <!-- 2. FORM ĐĂNG KÝ -->
+            <div id="form-register-box" style="display: none;">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-user-plus fs-1 text-success mb-2"></i>
+                    <h3 class="fw-bold">Đăng Ký Tài Khoản</h3>
+                    <p class="text-muted small">Tạo tài khoản mới bằng SĐT hoặc Gmail của bạn.</p>
+                </div>
+                <form onsubmit="handleRegisterSubmit(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên tài khoản</label>
+                        <input type="text" class="form-control" id="reg-username" placeholder="Chọn tên tài khoản..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số điện thoại hoặc Gmail</label>
+                        <input type="text" class="form-control" id="reg-contact" placeholder="Nhập SĐT hoặc Email..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="reg-password" placeholder="Tạo mật khẩu..." required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('reg-password', this)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success py-2 fw-bold"><i class="fa-solid fa-check me-1"></i> Hoàn Tất Đăng Ký</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3 small">
+                    Đã có tài khoản? <a href="#" class="fw-bold text-decoration-none" onclick="switchAuthTab('login')">Đăng nhập</a>
+                </div>
+            </div>
+
+            <!-- 3. FORM QUÊN MẬT KHẨU & GỬI MÃ OTP -->
+            <div id="form-forgot-box" style="display: none;">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-key fs-1 text-warning mb-2"></i>
+                    <h3 class="fw-bold">Khôi Phục Mật Khẩu</h3>
+                    <p class="text-muted small">Nhập SĐT hoặc Gmail để nhận mã OTP đổi mật khẩu.</p>
+                </div>
+                
+                <div id="otp-step-1">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">SĐT hoặc Gmail đã đăng ký</label>
+                        <input type="text" class="form-control" id="forgot-contact" placeholder="Nhập SĐT hoặc Email..." required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-warning fw-bold py-2" onclick="sendOtpCode()"><i class="fa-solid fa-paper-plane me-1"></i> Gửi Mã OTP</button>
+                    </div>
+                </div>
+
+                <div id="otp-step-2" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã OTP (Mã giả lập: 123456)</label>
+                        <input type="text" class="form-control" id="forgot-otp" placeholder="Nhập 6 chữ số OTP..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu mới</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="new-password" placeholder="Nhập mật khẩu mới..." required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('new-password', this)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success fw-bold py-2" onclick="verifyOtpAndReset()"><i class="fa-solid fa-shield-check me-1"></i> Xác Nhận Đổi Mật Khẩu</button>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3 small">
+                    <a href="#" class="text-decoration-none" onclick="switchAuthTab('login')"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại đăng nhập</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- SIDEBAR NAVIGATION -->
     <div id="sidebar" class="d-flex flex-column">
         <div class="brand d-flex align-items-center justify-content-between">
@@ -163,11 +279,10 @@
                 <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="chat-view"><i class="fa-solid fa-comments"></i> Chat Giữa Mọi Người</a></li>
                 <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="feed-view"><i class="fa-solid fa-earth-americas"></i> Đăng Ảnh Bạn Bè (Feed)</a></li>
                 <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="trash-view"><i class="fa-solid fa-trash-can"></i> Thùng Rác</a></li>
-                <li class="nav-item mb-1 d-none" id="admin-nav-item"><a href="#" class="nav-link text-warning" data-target="admin-view"><i class="fa-solid fa-user-shield"></i> Hệ Thống Admin</a></li>
             </ul>
         </div>
         <div class="p-3 border-top border-secondary text-center small text-white-50">
-            Firebase Realtime • Shift+2 Admin
+            Bảo mật • Nhấn Shift+2 Admin
         </div>
     </div>
 
@@ -179,20 +294,8 @@
                 <button class="btn btn-outline-secondary me-3 d-md-none" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
                 <h4 class="mb-0 fw-bold text-dark" id="page-title">Tổng Quan Hệ Thống</h4>
                 <div class="ms-auto d-flex align-items-center gap-3">
-                    <button class="btn btn-primary btn-sm fw-semibold px-3 py-2 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#authModal">
-                        <i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập / Đăng Ký
-                    </button>
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 rounded-pill border px-3" type="button" data-bs-toggle="dropdown">
-                            <i class="fa-solid fa-user-circle fs-5 text-primary"></i>
-                            <span id="current-user-display" class="fw-semibold">adminMuc</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#authModal"><i class="fa-solid fa-user-gear me-2 text-primary"></i> Đăng nhập hệ thống</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2 text-danger" href="#" onclick="resetAllData()"><i class="fa-solid fa-rotate-right me-2"></i> Đặt lại dữ liệu</a></li>
-                        </ul>
-                    </div>
+                    <span id="current-user-display" class="fw-semibold text-primary">Tài khoản</span>
+                    <button class="btn btn-outline-danger btn-sm" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
                 </div>
             </div>
         </nav>
@@ -334,7 +437,7 @@
                             <form onsubmit="addBillItem(event)">
                                 <div class="mb-3">
                                     <label class="form-label">Tên món đồ / Hàng hóa</label>
-                                    <input type="text" class="form-control" id="bill-item-name" placeholder="VD: Gạo, Sữa, Cà phê..." required>
+                                    <input type="text" class="form-control" id="bill-item-name" placeholder="VD: Gạo, Sữa..." required>
                                 </div>
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
@@ -349,25 +452,19 @@
                                 <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Thêm Vào Bill Tạm Thời</button>
                             </form>
                         </div>
-
-                        <!-- SẢN PHẨM ĐÃ THÊM ĐỂ DÙNG LẠI NHANH -->
                         <div class="card app-card p-4">
                             <h5 class="fw-bold mb-2"><i class="fa-solid fa-box-archive text-success me-2"></i>Sản Phẩm Đã Thêm</h5>
-                            <p class="text-muted small mb-3">Bấm vào nút cộng để thêm lại món đồ này vào bill mà không cần nhập lại.</p>
                             <div id="saved-templates-container" class="d-flex flex-column gap-2" style="max-height: 280px; overflow-y: auto;"></div>
                         </div>
                     </div>
-
                     <div class="col-lg-7">
                         <div class="card app-card p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-warning me-2"></i>Hóa Đơn Hiện Tại (Bill Tạm)</h5>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-danger" onclick="clearCurrentBill()"><i class="fa-solid fa-trash me-1"></i> Làm mới</button>
-                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="clearCurrentBill()"><i class="fa-solid fa-trash me-1"></i> Làm mới</button>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Tên hóa đơn / Phiên mua sắm</label>
+                                <label class="form-label small text-muted">Tên hóa đơn</label>
                                 <input type="text" class="form-control fw-bold" id="current-bill-title" value="Mua sắm hàng tháng">
                             </div>
                             <div class="table-responsive mb-3" style="max-height: 350px; overflow-y: auto;">
@@ -388,16 +485,16 @@
                                 <h4 class="fw-bold mb-0">Tổng Bill:</h4>
                                 <h3 class="fw-bold text-danger mb-0" id="current-bill-total">0 đ</h3>
                             </div>
-                            <button class="btn btn-success w-100 py-3 fw-bold fs-5" onclick="checkoutBillToCashFlow()"><i class="fa-solid fa-check-to-slot me-2"></i> Thêm Nhanh Vào Chi Tiêu (Dòng Tiền)</button>
+                            <button class="btn btn-success w-100 py-3 fw-bold fs-5" onclick="checkoutBillToCashFlow()"><i class="fa-solid fa-check-to-slot me-2"></i> Thêm Nhanh Vào Chi Tiêu</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. GALLERY & CAMERA -->
+            <!-- 4. GALLERY -->
             <div id="gallery-view" class="app-view d-none">
                 <div class="card app-card p-4 mb-4">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Kho Ảnh & Chụp Ảnh Trực Tiếp</h5>
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Kho Ảnh & Chụp Ảnh</h5>
                     <div class="row g-3">
                         <div class="col-md-5">
                             <input type="text" class="form-control" id="gallery-title" placeholder="Tiêu đề ảnh..." required>
@@ -410,7 +507,7 @@
                         </div>
                     </div>
                     <div class="mt-3 text-center">
-                        <button class="btn btn-outline-secondary btn-sm" onclick="openCameraModal()"><i class="fa-solid fa-camera me-1"></i> Mở Camera Chụp Ảnh</button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="openCameraModal()"><i class="fa-solid fa-camera me-1"></i> Mở Camera</button>
                         <span class="ms-3 text-muted small" id="gallery-storage-indicator">Dung lượng: 0 / 3072 MB (3GB)</span>
                     </div>
                 </div>
@@ -437,13 +534,10 @@
             <!-- 6. CHECKLIST -->
             <div id="checklist-view" class="app-view d-none">
                 <div class="card app-card p-4 mb-4">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-check text-primary me-2"></i>Checklist Công Việc & Đính Kèm Ảnh</h5>
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-check text-primary me-2"></i>Checklist Công Việc</h5>
                     <form onsubmit="addChecklistTask(event)" class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-10">
                             <input type="text" class="form-control" id="task-title" placeholder="Tên công việc..." required>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="text" class="form-control" id="task-images" placeholder="URL ảnh (cách nhau bởi dấu phẩy)...">
                         </div>
                         <div class="col-md-2">
                             <button class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-plus me-1"></i> Thêm</button>
@@ -455,18 +549,17 @@
                 </div>
             </div>
 
-            <!-- 7. CLOUD STORAGE 3GB -->
+            <!-- 7. CLOUD STORAGE -->
             <div id="cloud-view" class="app-view d-none">
                 <div class="row justify-content-center">
                     <div class="col-md-8">
                         <div class="card app-card p-4 text-center">
                             <i class="fa-solid fa-cloud-arrow-up fs-1 text-primary mb-3"></i>
                             <h3 class="fw-bold">Gói Lưu Trữ Cloud 3GB</h3>
-                            <p class="text-muted">Đang sử dụng gói lưu trữ đám mây cao cấp dung lượng 3GB tích hợp đồng bộ Firebase Realtime.</p>
+                            <p class="text-muted">Dung lượng đám mây của bạn được cấp phát và quản lý bởi Quản Trị Viên.</p>
                             <div class="progress my-4" style="height: 25px;">
                                 <div id="cloud-progress-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 15%;">150 MB / 3072 MB</div>
                             </div>
-                            <button class="btn btn-outline-primary" onclick="alert('Dung lượng 3GB của bạn hoạt động ổn định và được đồng bộ tự động.')">Kiểm tra đồng bộ</button>
                         </div>
                     </div>
                 </div>
@@ -477,29 +570,25 @@
                 <div class="row justify-content-center">
                     <div class="col-md-6 col-lg-4">
                         <div class="card app-card p-4 shadow-sm">
-                            <h4 class="fw-bold text-center mb-3"><i class="fa-solid fa-calculator text-warning me-2"></i>Máy Tính Cầm Tay</h4>
+                            <h4 class="fw-bold text-center mb-3"><i class="fa-solid fa-calculator text-warning me-2"></i>Máy Tính</h4>
                             <div class="calc-display" id="calc-display">0</div>
                             <div class="calculator-grid">
                                 <button class="btn btn-outline-secondary" onclick="calcClear()">C</button>
                                 <button class="btn btn-outline-secondary" onclick="calcSign()">±</button>
                                 <button class="btn btn-outline-secondary" onclick="calcPercent()">%</button>
                                 <button class="btn btn-warning text-white" onclick="calcAppendOperator('/')">÷</button>
-                                
                                 <button class="btn btn-light border" onclick="calcAppendNumber('7')">7</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('8')">8</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('9')">9</button>
                                 <button class="btn btn-warning text-white" onclick="calcAppendOperator('*')">×</button>
-                                
                                 <button class="btn btn-light border" onclick="calcAppendNumber('4')">4</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('5')">5</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('6')">6</button>
                                 <button class="btn btn-warning text-white" onclick="calcAppendOperator('-')">-</button>
-                                
                                 <button class="btn btn-light border" onclick="calcAppendNumber('1')">1</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('2')">2</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('3')">3</button>
                                 <button class="btn btn-warning text-white" onclick="calcAppendOperator('+')">+</button>
-                                
                                 <button class="btn btn-light border" onclick="calcAppendNumber('0')">0</button>
                                 <button class="btn btn-light border" onclick="calcAppendNumber('.')">.</button>
                                 <button class="btn btn-danger" onclick="calcDelete()"><i class="fa-solid fa-delete-left"></i></button>
@@ -510,28 +599,21 @@
                 </div>
             </div>
 
-            <!-- 9. COMMUNITY CHAT & FRIENDS -->
+            <!-- 9. CHAT -->
             <div id="chat-view" class="app-view d-none">
                 <div class="card app-card overflow-hidden">
                     <div class="row g-0">
                         <div class="col-md-4 chat-sidebar p-3 bg-light">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-users text-primary me-2"></i>Kết Bạn & Nhắn Tin</h5>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" id="friend-search-input" placeholder="Tìm thành viên...">
-                                <button class="btn btn-outline-primary" onclick="searchUsers()"><i class="fa-solid fa-search"></i></button>
-                            </div>
-                            <div id="search-user-results" class="mb-3"></div>
-                            <h6 class="text-muted small fw-bold uppercase">Phòng Chat</h6>
-                            <div class="list-group list-group-flush" id="chat-rooms-list">
-                                <button class="list-group-item list-group-item-action active rounded mb-1" onclick="selectChatRoom('public_room', 'Phòng Chung Cộng Đồng')">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-users text-primary me-2"></i>Tin Nhắn</h5>
+                            <div class="list-group list-group-flush">
+                                <button class="list-group-item list-group-item-action active rounded mb-1">
                                     <i class="fa-solid fa-globe me-2"></i> Phòng Chung Cộng Đồng
                                 </button>
                             </div>
                         </div>
                         <div class="col-md-8 d-flex flex-column" style="height: calc(100vh - 140px);">
-                            <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center">
-                                <h5 class="fw-bold mb-0" id="active-chat-title"><i class="fa-solid fa-globe text-primary me-2"></i>Phòng Chung Cộng Đồng</h5>
-                                <span class="badge bg-success">Firebase Realtime</span>
+                            <div class="p-3 border-bottom bg-white">
+                                <h5 class="fw-bold mb-0"><i class="fa-solid fa-globe text-primary me-2"></i>Phòng Chung Cộng Đồng</h5>
                             </div>
                             <div class="chat-messages p-3 d-flex flex-column flex-grow-1" id="chat-messages-container"></div>
                             <div class="p-3 bg-white border-top">
@@ -545,21 +627,20 @@
                 </div>
             </div>
 
-            <!-- 10. PHOTO SOCIAL FEED -->
+            <!-- 10. FEED -->
             <div id="feed-view" class="app-view d-none">
                 <div class="row justify-content-center">
                     <div class="col-lg-7">
                         <div class="card app-card p-4 mb-4">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-camera-retro text-primary me-2"></i>Đăng Ảnh Bạn Bè (Feed MXH)</h5>
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-camera-retro text-primary me-2"></i>Đăng Ảnh Bạn Bè (Feed)</h5>
                             <form onsubmit="createFeedPost(event)">
                                 <div class="mb-3">
-                                    <textarea class="form-control" id="feed-caption" rows="2" placeholder="Bạn muốn chia sẻ điều gì với bạn bè?" required></textarea>
+                                    <textarea class="form-control" id="feed-caption" rows="2" placeholder="Chia sẻ điều gì đó..." required></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <input type="url" class="form-control" id="feed-image-url" placeholder="Đường dẫn ảnh (URL)..." required>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted"><i class="fa-solid fa-heart text-danger me-1"></i> Thả tim, bình luận, chia sẻ</small>
+                                <div class="text-end">
                                     <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-paper-plane me-1"></i> Đăng Bài</button>
                                 </div>
                             </form>
@@ -569,21 +650,21 @@
                 </div>
             </div>
 
-            <!-- 11. TRASH BIN -->
+            <!-- 11. TRASH -->
             <div id="trash-view" class="app-view d-none">
                 <div class="card app-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-trash-can text-danger me-2"></i>Thùng Rác</h5>
-                        <button class="btn btn-sm btn-outline-danger" onclick="emptyTrash()"><i class="fa-solid fa-trash me-1"></i> Dọn sạch</button>
+                        <h5 class="fw-bold mb-0 text-danger"><i class="fa-solid fa-shield-halved me-2"></i>Thùng Rác & Bảo Vệ Dữ Liệu</h5>
+                        <small class="text-muted">Tính năng xóa vĩnh viễn bị vô hiệu hóa.</small>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
                                     <th>Loại</th>
-                                    <th>Tiêu đề / Nội dung</th>
-                                    <th>Thời gian xóa</th>
-                                    <th class="text-center">Thao tác</th>
+                                    <th>Nội dung</th>
+                                    <th>Thời gian</th>
+                                    <th class="text-center">Trạng thái</th>
                                 </tr>
                             </thead>
                             <tbody id="trash-table-body"></tbody>
@@ -592,45 +673,34 @@
                 </div>
             </div>
 
-            <!-- 12. HIDDEN ADMIN VIEW (Unlocked via Shift + 2 or Admin Accounts) -->
+            <!-- 12. ADMIN PANEL -->
             <div id="admin-view" class="app-view d-none">
                 <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card app-card p-4">
-                            <h5 class="fw-bold mb-3 text-warning"><i class="fa-solid fa-user-shield me-2"></i>Hệ Thống Quản Trị Viên (Admin & QTV)</h5>
-                            <p class="text-muted small">Khu vực độc quyền dành riêng cho tài khoản quản trị.</p>
-                            <hr>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tài khoản quản trị hiện tại</label>
-                                <input type="text" class="form-control" id="admin-username-input" readonly>
+                    <div class="col-12">
+                        <div class="card app-card p-4 border-warning border-2">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="fw-bold text-warning mb-0"><i class="fa-solid fa-user-shield me-2"></i>Quản Trị Viên (Admin & QTV)</h4>
+                                <button class="btn btn-sm btn-secondary" onclick="lockAdminPanel()"><i class="fa-solid fa-lock me-1"></i> Khóa lại</button>
                             </div>
-                            <div class="alert alert-info py-2 small mb-0">
-                                <i class="fa-solid fa-circle-info me-1"></i> Bạn đang đăng nhập bằng quyền Quản Trị.
-                            </div>
+                            <p class="text-muted small">Quản lý người dùng, xem thông tin SĐT/Gmail đăng ký và cấp thêm dung lượng cho khách hàng.</p>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-lg-12">
                         <div class="card app-card p-4">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-database text-success me-2"></i>Thống Kê Firebase Realtime</h5>
-                            <ul class="list-group list-group-flush mb-3">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Tổng giao dịch tài chính</span>
-                                    <span class="badge bg-primary" id="admin-stat-cf">0</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Sản phẩm đã lưu</span>
-                                    <span class="badge bg-success" id="admin-stat-bills">0</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Bài viết Feed MXH</span>
-                                    <span class="badge bg-info" id="admin-stat-feed">0</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Mục trong thùng rác</span>
-                                    <span class="badge bg-danger" id="admin-stat-trash">0</span>
-                                </li>
-                            </ul>
-                            <button class="btn btn-outline-danger w-100" onclick="resetAllData()"><i class="fa-solid fa-triangle-exclamation me-1"></i> Đặt lại toàn bộ dữ liệu</button>
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-users-gear text-primary me-2"></i>Danh Sách Tài Khoản Khách Hàng</h5>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tên tài khoản</th>
+                                            <th>SĐT / Gmail đăng ký</th>
+                                            <th>Dung lượng Cloud</th>
+                                            <th class="text-center">Cấp thêm (+1GB)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-users-tbody"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -639,33 +709,33 @@
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
-    <div class="modal fade" id="authModal" tabindex="-1">
+    <!-- MODAL ĐĂNG NHẬP ADMIN BẰNG SHIFT + 2 -->
+    <div class="modal fade" id="adminLoginModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-lock me-2"></i>Đăng Nhập Tài Khoản Hệ Thống</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-lock me-2"></i>Đăng Nhập Quản Trị Viên</h5>
                 </div>
                 <div class="modal-body p-4">
-                    <form onsubmit="handleUserAuth(event)">
+                    <form onsubmit="handleAdminAuth(event)">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Tên tài khoản</label>
-                            <input type="text" class="form-control" id="auth-username-input" placeholder="Nhập tên tài khoản..." required>
+                            <label class="form-label fw-semibold">Tài khoản quản trị</label>
+                            <input type="text" class="form-control" id="login-admin-user" placeholder="adminMuc, qtvMuc1 hoặc qtvMuc2" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Mật khẩu</label>
-                            <input type="password" class="form-control" id="auth-password-input" placeholder="Nhập mật khẩu..." required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="login-admin-pass" placeholder="Mật khẩu..." required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('login-admin-pass', this)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary py-2 fw-bold"><i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập Hệ Thống</button>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold py-2"><i class="fa-solid fa-key me-1"></i> Truy Cập Admin</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-bs-dismiss="modal">Hủy</button>
                         </div>
                     </form>
-                    <div class="mt-3 text-muted small text-center">
-                        <b>Gợi ý tài khoản Admin/QTV:</b><br>
-                        • adminMuc / adminMuc<br>
-                        • qtvMuc1 / qtvMuc1 | qtvMuc2 / qtvMuc2
-                    </div>
                 </div>
             </div>
         </div>
@@ -676,7 +746,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-camera me-2"></i>Chụp Ảnh Trực Tiếp</h5>
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-camera me-2"></i>Chụp Ảnh</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-4">
@@ -692,76 +762,174 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Danh sách tài khoản Admin và QTV hợp lệ
-        const validAdminAccounts = {
+        const adminCredentials = {
             "adminMuc": "adminMuc",
             "qtvMuc1": "qtvMuc1",
             "qtvMuc2": "qtvMuc2"
         };
 
         let appState = {
-            currentUser: localStorage.getItem('multi_app_user') || 'adminMuc',
+            currentUser: localStorage.getItem('multi_app_user') || '',
             isAdminUnlocked: localStorage.getItem('multi_app_admin_unlocked') === 'true',
-            cloudUsed: Number(localStorage.getItem('multi_app_cloud_used')) || 175,
-            cashflow: JSON.parse(localStorage.getItem('multi_app_cashflow')) || [
-                { id: 1, type: 'income', amount: 15000000, category: 'Lương tháng', note: 'Lương chính', date: '2026-03-01' },
-                { id: 2, type: 'expense', amount: 2500000, category: 'Ăn uống', note: 'Sinh hoạt phí', date: '2026-03-05' }
+            registeredUsers: JSON.parse(localStorage.getItem('multi_app_reg_users')) || [
+                { username: "Hanry", contact: "hanry@gmail.com", password: "123", storageMb: 3072 }
             ],
-            currentBill: JSON.parse(localStorage.getItem('multi_app_current_bill')) || [
-                { id: 1, name: 'Gạo thơm ST25 (5kg)', qty: 2, price: 120000 },
-                { id: 2, name: 'Sữa tươi thanh trùng', qty: 3, price: 35000 }
-            ],
-            savedBills: JSON.parse(localStorage.getItem('multi_app_saved_bills')) || [
-                { id: 1, title: 'Gạo thơm ST25 (5kg)', price: 120000 },
-                { id: 2, title: 'Sữa tươi thanh trùng', price: 35000 },
-                { id: 3, title: 'Cà phê nguyên chất', price: 80000 }
-            ],
-            gallery: JSON.parse(localStorage.getItem('multi_app_gallery')) || [
-                { id: 1, title: 'Cảnh hoàng hôn', url: 'https://placehold.co/600x400/0d6efd/ffffff?text=Hoang+Hon' }
-            ],
-            notes: JSON.parse(localStorage.getItem('multi_app_notes')) || [
-                { id: 1, title: 'Kế hoạch công việc', content: 'Hoàn thành ứng dụng Đa Chức Năng đầy đủ tính năng.' }
-            ],
-            checklist: JSON.parse(localStorage.getItem('multi_app_checklist')) || [
-                { id: 1, title: 'Kiểm tra hệ thống Firebase & UI', completed: true, images: ['https://placehold.co/100'] }
-            ],
+            cashflow: JSON.parse(localStorage.getItem('multi_app_cashflow')) || [],
+            currentBill: JSON.parse(localStorage.getItem('multi_app_current_bill')) || [],
+            savedBills: JSON.parse(localStorage.getItem('multi_app_saved_bills')) || [],
+            gallery: JSON.parse(localStorage.getItem('multi_app_gallery')) || [],
+            notes: JSON.parse(localStorage.getItem('multi_app_notes')) || [],
+            checklist: JSON.parse(localStorage.getItem('multi_app_checklist')) || [],
             trash: JSON.parse(localStorage.getItem('multi_app_trash')) || [],
-            chatMessages: JSON.parse(localStorage.getItem('multi_app_chat')) || [
-                { id: 1, room: 'public_room', sender: 'Hệ Thống', message: 'Chào mừng Quản Trị Viên đến với hệ thống!', time: '10:00' }
-            ],
-            feedPosts: JSON.parse(localStorage.getItem('multi_app_feed')) || [
-                {
-                    id: 1,
-                    author: 'adminMuc',
-                    caption: 'Hệ thống quản trị hoạt động ổn định.',
-                    imageUrl: 'https://placehold.co/600x400/6610f2/ffffff?text=Admin+System',
-                    likes: ['qtvMuc1'],
-                    comments: [{ author: 'qtvMuc2', text: 'Đã kiểm tra hệ thống.' }],
-                    time: 'Hôm nay'
-                }
-            ],
-            usersList: JSON.parse(localStorage.getItem('multi_app_users')) || ['adminMuc', 'qtvMuc1', 'qtvMuc2']
+            chatMessages: JSON.parse(localStorage.getItem('multi_app_chat')) || [],
+            feedPosts: JSON.parse(localStorage.getItem('multi_app_feed')) || []
         };
 
         let calcInput = '0';
-        let currentChatRoom = 'public_room';
         let mediaStreamObj = null;
+        let tempForgotContact = '';
 
-        // PHÍM TẮT SHIFT + 2: Mở khóa nhanh trang Quản trị Admin cho mọi tài khoản Admin/QTV
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthOverlay();
+        });
+
+        // Hàm bật/tắt hiện mật khẩu
+        function togglePasswordVisibility(fieldId, btn) {
+            const input = document.getElementById(fieldId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function checkAuthOverlay() {
+            const overlay = document.getElementById('auth-overlay');
+            if (!appState.currentUser) {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+                document.getElementById('current-user-display').innerText = appState.currentUser;
+                renderDashboard();
+            }
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('form-login-box').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('form-register-box').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('form-forgot-box').style.display = tab === 'forgot' ? 'block' : 'none';
+            document.getElementById('otp-step-1').style.display = 'block';
+            document.getElementById('otp-step-2').style.display = 'none';
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const contact = document.getElementById('reg-contact').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+
+            if (appState.registeredUsers.some(u => u.username === username)) {
+                alert("Tên tài khoản này đã tồn tại!");
+                return;
+            }
+
+            appState.registeredUsers.push({ username, contact, password, storageMb: 3072 });
+            saveState();
+            alert("✅ Đăng ký thành công! Vui lòng đăng nhập.");
+            switchAuthTab('login');
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            const found = appState.registeredUsers.find(u => u.username === username && u.password === password);
+            if (found) {
+                appState.currentUser = username;
+                saveState();
+                checkAuthOverlay();
+            } else {
+                alert("Sai tên tài khoản hoặc mật khẩu!");
+            }
+        }
+
+        function sendOtpCode() {
+            const contact = document.getElementById('forgot-contact').value.trim();
+            const found = appState.registeredUsers.find(u => u.contact === contact);
+            if (!found) {
+                alert("Không tìm thấy SĐT hoặc Gmail này trong hệ thống!");
+                return;
+            }
+            tempForgotContact = contact;
+            alert("📩 Mã OTP giả lập đã được gửi đến: " + contact + "\n(Mã OTP của bạn là: 123456)");
+            document.getElementById('otp-step-1').style.display = 'none';
+            document.getElementById('otp-step-2').style.display = 'block';
+        }
+
+        function verifyOtpAndReset() {
+            const otp = document.getElementById('forgot-otp').value.trim();
+            const newPass = document.getElementById('new-password').value.trim();
+
+            if (otp !== "123456") {
+                alert("Mã OTP không chính xác! (Nhập 123456)");
+                return;
+            }
+
+            let user = appState.registeredUsers.find(u => u.contact === tempForgotContact);
+            if (user) {
+                user.password = newPass;
+                saveState();
+                alert("✅ Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+                switchAuthTab('login');
+            }
+        }
+
+        function logoutUser() {
+            appState.currentUser = '';
+            saveState();
+            checkAuthOverlay();
+        }
+
         window.addEventListener('keydown', function(e) {
             if (e.shift && e.key === '2') {
-                appState.isAdminUnlocked = true;
-                localStorage.setItem('multi_app_admin_unlocked', 'true');
-                document.getElementById('admin-nav-item').classList.remove('d-none');
-                switchView('admin-view');
-                alert("🔓 Đã mở khóa hệ thống Quản trị Admin thành công bằng tổ hợp phím Shift + 2!");
+                e.preventDefault();
+                const modal = new bootstrap.Modal(document.getElementById('adminLoginModal'));
+                modal.show();
             }
         });
+
+        function handleAdminAuth(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-admin-user').value.trim();
+            const p = document.getElementById('login-admin-pass').value.trim();
+
+            if (adminCredentials[u] && adminCredentials[u] === p) {
+                appState.isAdminUnlocked = true;
+                localStorage.setItem('multi_app_admin_unlocked', 'true');
+                bootstrap.Modal.getInstance(document.getElementById('adminLoginModal')).hide();
+                switchView('admin-view');
+                alert(`🔓 Chào mừng Quản Trị Viên ${u}!`);
+            } else {
+                alert("⚠️ Sai thông tin đăng nhập Admin!");
+            }
+        }
+
+        function lockAdminPanel() {
+            appState.isAdminUnlocked = false;
+            localStorage.removeItem('multi_app_admin_unlocked');
+            switchView('dashboard-view');
+        }
 
         function saveState() {
             localStorage.setItem('multi_app_user', appState.currentUser);
             localStorage.setItem('multi_app_admin_unlocked', appState.isAdminUnlocked);
-            localStorage.setItem('multi_app_cloud_used', appState.cloudUsed);
+            localStorage.setItem('multi_app_reg_users', JSON.stringify(appState.registeredUsers));
             localStorage.setItem('multi_app_cashflow', JSON.stringify(appState.cashflow));
             localStorage.setItem('multi_app_current_bill', JSON.stringify(appState.currentBill));
             localStorage.setItem('multi_app_saved_bills', JSON.stringify(appState.savedBills));
@@ -771,18 +939,12 @@
             localStorage.setItem('multi_app_trash', JSON.stringify(appState.trash));
             localStorage.setItem('multi_app_chat', JSON.stringify(appState.chatMessages));
             localStorage.setItem('multi_app_feed', JSON.stringify(appState.feedPosts));
-            localStorage.setItem('multi_app_users', JSON.stringify(appState.usersList));
         }
 
         document.querySelectorAll('#sidebar .nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const target = this.getAttribute('data-target');
-                if (target === 'admin-view' && !appState.isAdminUnlocked) {
-                    alert("Khu vực Admin đang ẩn. Hãy nhấn Shift + 2 để mở khóa!");
-                    return;
-                }
-                switchView(target);
+                switchView(this.getAttribute('data-target'));
             });
         });
 
@@ -795,31 +957,15 @@
             if (activeLink) {
                 activeLink.classList.add('active');
                 document.getElementById('page-title').innerText = activeLink.innerText.trim();
-            }
-
-            if (window.innerWidth < 768) {
-                document.getElementById('sidebar').classList.remove('active');
+            } else if (targetId === 'admin-view') {
+                document.getElementById('page-title').innerText = "Trang Quản Trị Admin";
             }
             renderCurrentViewData(targetId);
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
 
         function renderCurrentViewData(viewId) {
-            document.getElementById('current-user-display').innerText = appState.currentUser;
-            
-            // Nếu là tài khoản Admin/QTV thì tự động mở tab Admin luôn
-            if (validAdminAccounts[appState.currentUser]) {
-                appState.isAdminUnlocked = true;
-                document.getElementById('admin-nav-item').classList.remove('d-none');
-            }
-
-            if (appState.isAdminUnlocked) {
-                document.getElementById('admin-nav-item').classList.remove('d-none');
-            }
-
             if (viewId === 'dashboard-view') renderDashboard();
             if (viewId === 'cashflow-view') renderCashFlow();
             if (viewId === 'bill-view') renderBillView();
@@ -830,108 +976,53 @@
             if (viewId === 'chat-view') renderChatMessages();
             if (viewId === 'feed-view') renderFeedPosts();
             if (viewId === 'trash-view') renderTrash();
-            if (viewId === 'admin-view') renderAdminStats();
-        }
-
-        function handleUserAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('auth-username-input').value.trim();
-            const password = document.getElementById('auth-password-input').value.trim();
-
-            if (validAdminAccounts[username] && validAdminAccounts[username] === password) {
-                appState.currentUser = username;
-                appState.isAdminUnlocked = true;
-                localStorage.setItem('multi_app_admin_unlocked', 'true');
-                if (!appState.usersList.includes(username)) appState.usersList.push(username);
-                saveState();
-                
-                renderCurrentViewData(document.querySelector('.app-view:not(.d-none)').id);
-                bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
-                alert(`Đăng nhập thành công với quyền Quản Trị: ${username}`);
-            } else {
-                alert("Sai tên tài khoản hoặc mật khẩu quản trị! Vui lòng kiểm tra lại (VD: adminMuc / adminMuc).");
-            }
+            if (viewId === 'admin-view') renderAdminPanel();
         }
 
         let cashflowChartInstance = null;
         function renderDashboard() {
             let totalIncome = appState.cashflow.filter(i => i.type === 'income').reduce((sum, i) => sum + Number(i.amount), 0);
             let totalExpense = appState.cashflow.filter(i => i.type === 'expense').reduce((sum, i) => sum + Number(i.amount), 0);
-            let balance = totalIncome - totalExpense;
-
             document.getElementById('dash-total-income').innerText = totalIncome.toLocaleString() + ' đ';
             document.getElementById('dash-total-expense').innerText = totalExpense.toLocaleString() + ' đ';
-            document.getElementById('dash-balance').innerText = balance.toLocaleString() + ' đ';
+            document.getElementById('dash-balance').innerText = (totalIncome - totalExpense).toLocaleString() + ' đ';
             document.getElementById('dash-bills-count').innerText = appState.savedBills.length;
 
             const ctx = document.getElementById('cashflowChart').getContext('2d');
             if (cashflowChartInstance) cashflowChartInstance.destroy();
             cashflowChartInstance = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: ['Tổng Thu', 'Tổng Chi'],
-                    datasets: [{
-                        data: [totalIncome, totalExpense],
-                        backgroundColor: ['#198754', '#dc3545'],
-                        borderWidth: 2
-                    }]
-                },
+                data: { labels: ['Thu', 'Chi'], datasets: [{ data: [totalIncome, totalExpense], backgroundColor: ['#198754', '#dc3545'] }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
         function addCashFlow(e) {
             e.preventDefault();
-            const item = {
+            appState.cashflow.unshift({
                 id: Date.now(),
                 type: document.getElementById('cf-type').value,
                 amount: document.getElementById('cf-amount').value,
                 category: document.getElementById('cf-category').value,
                 note: document.getElementById('cf-note').value,
                 date: new Date().toISOString().split('T')[0]
-            };
-            appState.cashflow.unshift(item);
+            });
             saveState();
             renderCashFlow();
             document.getElementById('cashflow-form').reset();
         }
 
         function renderCashFlow() {
-            const tbody = document.getElementById('cashflow-table-body');
-            tbody.innerHTML = appState.cashflow.map(item => `
+            document.getElementById('cashflow-table-body').innerHTML = appState.cashflow.map(i => `
                 <tr>
-                    <td>${item.date}</td>
-                    <td><span class="badge bg-${item.type === 'income' ? 'success' : 'danger'}">${item.type === 'income' ? 'Thu' : 'Chi'}</span></td>
-                    <td class="fw-semibold">${item.category}</td>
-                    <td>${item.note || ''}</td>
-                    <td class="text-end fw-bold text-${item.type === 'income' ? 'success' : 'danger'}">${Number(item.amount).toLocaleString()} đ</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCashFlow(${item.id})"><i class="fa-solid fa-trash"></i></button>
-                    </td>
+                    <td>${i.date}</td>
+                    <td><span class="badge bg-${i.type === 'income' ? 'success' : 'danger'}">${i.type === 'income' ? 'Thu' : 'Chi'}</span></td>
+                    <td class="fw-semibold">${i.category}</td>
+                    <td>${i.note || ''}</td>
+                    <td class="text-end fw-bold text-${i.type === 'income' ? 'success' : 'danger'}">${Number(i.amount).toLocaleString()} đ</td>
+                    <td class="text-center text-muted"><i class="fa-solid fa-lock" title="Đã bảo vệ"></i></td>
                 </tr>
             `).join('');
-        }
-
-        function deleteCashFlow(id) {
-            const item = appState.cashflow.find(i => i.id === id);
-            if (item) {
-                appState.cashflow = appState.cashflow.filter(i => i.id !== id);
-                appState.trash.unshift({ type: 'Dòng tiền', title: `${item.category} - ${Number(item.amount).toLocaleString()}đ`, time: new Date().toLocaleString() });
-                saveState();
-                renderCashFlow();
-            }
-        }
-
-        function exportCashFlowCSV() {
-            let csv = "data:text/csv;charset=utf-8,Ngay,Loai,DanhMuc,GhiChu,SoTien\n";
-            appState.cashflow.forEach(r => csv += `${r.date},${r.type},"${r.category}","${r.note || ''}",${r.amount}\n`);
-            const uri = encodeURI(csv);
-            const link = document.createElement("a");
-            link.setAttribute("href", uri);
-            link.setAttribute("download", "dong_tien.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         function addBillItem(e) {
@@ -939,477 +1030,99 @@
             const name = document.getElementById('bill-item-name').value;
             const qty = Number(document.getElementById('bill-item-qty').value);
             const price = Number(document.getElementById('bill-item-price').value);
-
             appState.currentBill.push({ id: Date.now(), name, qty, price });
-            
-            if (!appState.savedBills.some(item => item.title.toLowerCase() === name.toLowerCase())) {
-                appState.savedBills.unshift({ id: Date.now(), title: name, price });
-            }
-
-            saveState();
-            renderBillView();
-            document.getElementById('bill-item-name').value = '';
-            document.getElementById('bill-item-qty').value = '1';
-            document.getElementById('bill-item-price').value = '';
-        }
-
-        function quickAddSavedItem(title, price) {
-            appState.currentBill.push({ id: Date.now(), name: title, qty: 1, price });
             saveState();
             renderBillView();
         }
 
-        function removeBillItem(id) {
-            appState.currentBill = appState.currentBill.filter(i => i.id !== id);
-            saveState();
-            renderBillView();
-        }
-
-        function clearCurrentBill() {
-            appState.currentBill = [];
-            saveState();
-            renderBillView();
-        }
+        function removeBillItem(id) { appState.currentBill = appState.currentBill.filter(i => i.id !== id); saveState(); renderBillView(); }
+        function clearCurrentBill() { appState.currentBill = []; saveState(); renderBillView(); }
 
         function renderBillView() {
-            const tbody = document.getElementById('bill-items-tbody');
             let total = 0;
-
-            tbody.innerHTML = appState.currentBill.map(item => {
-                const subtotal = item.qty * item.price;
-                total += subtotal;
-                return `
-                    <tr>
-                        <td class="fw-semibold">${item.name}</td>
-                        <td class="text-center">${item.qty}</td>
-                        <td class="text-end">${item.price.toLocaleString()} đ</td>
-                        <td class="text-end fw-bold">${subtotal.toLocaleString()} đ</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger" onclick="removeBillItem(${item.id})"><i class="fa-solid fa-xmark"></i></button>
-                        </td>
-                    </tr>
-                `;
+            document.getElementById('bill-items-tbody').innerHTML = appState.currentBill.map(item => {
+                total += item.qty * item.price;
+                return `<tr><td>${item.name}</td><td class="text-center">${item.qty}</td><td class="text-end">${item.price.toLocaleString()}đ</td><td class="text-end fw-bold">${(item.qty*item.price).toLocaleString()}đ</td><td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="removeBillItem(${item.id})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
             }).join('');
-
             document.getElementById('current-bill-total').innerText = total.toLocaleString() + ' đ';
-
-            const container = document.getElementById('saved-templates-container');
-            container.innerHTML = appState.savedBills.length ? appState.savedBills.map(b => `
-                <div class="card p-2 border bg-light shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="fw-bold mb-0 text-dark">${b.title}</h6>
-                            <small class="text-muted">${b.price.toLocaleString()} đ</small>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-primary" onclick="quickAddSavedItem('${b.title.replace(/'/g, "\\'")}', ${b.price})" title="Thêm nhanh vào bill"><i class="fa-solid fa-plus"></i></button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSavedItem(${b.id})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `).join('') : '<small class="text-muted text-center py-2">Chưa có sản phẩm nào được lưu.</small>';
-        }
-
-        function deleteSavedItem(id) {
-            appState.savedBills = appState.savedBills.filter(x => x.id !== id);
-            saveState();
-            renderBillView();
         }
 
         function checkoutBillToCashFlow() {
-            if (!appState.currentBill.length) return alert("Không có sản phẩm nào trong bill tạm thời.");
-            const title = document.getElementById('current-bill-title').value || 'Mua sắm';
-            const total = appState.currentBill.reduce((sum, i) => sum + (i.qty * i.price), 0);
-
-            appState.cashflow.unshift({
-                id: Date.now(),
-                type: 'expense',
-                amount: total,
-                category: 'Mua sắm / Bill',
-                note: `Thanh toán bill: ${title} (${appState.currentBill.length} món)`,
-                date: new Date().toISOString().split('T')[0]
-            });
-
+            if (!appState.currentBill.length) return;
+            let total = appState.currentBill.reduce((s, i) => s + (i.qty * i.price), 0);
+            appState.cashflow.unshift({ id: Date.now(), type: 'expense', amount: total, category: 'Mua sắm', note: 'Thanh toán bill', date: new Date().toISOString().split('T')[0] });
+            appState.currentBill = [];
             saveState();
-            alert(`✅ Đã thêm tổng số tiền ${total.toLocaleString()} đ vào hệ thống Quản Lý Dòng Tiền (Chi Tiêu)!`);
+            alert("✅ Đã thêm vào chi tiêu!");
             switchView('cashflow-view');
         }
 
         function addGalleryImage() {
-            const title = document.getElementById('gallery-title').value;
-            const url = document.getElementById('gallery-url').value;
-            if (!title || !url) return alert("Vui lòng nhập đầy đủ thông tin.");
-            appState.gallery.unshift({ id: Date.now(), title, url });
-            appState.cloudUsed += 25;
+            appState.gallery.unshift({ id: Date.now(), title: document.getElementById('gallery-title').value, url: document.getElementById('gallery-url').value });
             saveState();
             renderGallery();
-            document.getElementById('gallery-title').value = '';
-            document.getElementById('gallery-url').value = '';
         }
-
-        function openCameraModal() {
-            const modal = new bootstrap.Modal(document.getElementById('cameraModal'));
-            modal.show();
-            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-                mediaStreamObj = stream;
-                document.getElementById('camera-stream').srcObject = stream;
-            }).catch(() => alert("Không thể truy cập camera."));
-        }
-
+        function openCameraModal() { new bootstrap.Modal(document.getElementById('cameraModal')).show(); navigator.mediaDevices.getUserMedia({video:true}).then(s => document.getElementById('camera-stream').srcObject = s); }
         function capturePhoto() {
-            const video = document.getElementById('camera-stream');
-            const canvas = document.getElementById('camera-canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/png');
-            
-            if (mediaStreamObj) mediaStreamObj.getTracks().forEach(t => t.stop());
+            const v = document.getElementById('camera-stream'), c = document.getElementById('camera-canvas');
+            c.width = 640; c.height = 480; c.getContext('2d').drawImage(v, 0, 0, 640, 480);
+            v.srcObject.getTracks().forEach(t => t.stop());
             bootstrap.Modal.getInstance(document.getElementById('cameraModal')).hide();
-
-            appState.gallery.unshift({ id: Date.now(), title: 'Ảnh chụp trực tiếp', url: dataUrl });
-            appState.cloudUsed += 35;
-            saveState();
-            renderGallery();
+            appState.gallery.unshift({ id: Date.now(), title: 'Ảnh chụp', url: c.toDataURL() });
+            saveState(); renderGallery();
         }
+        function renderGallery() { document.getElementById('gallery-grid').innerHTML = appState.gallery.map(i => `<div class="col-md-4"><div class="card app-card"><img src="${i.url}" class="feed-img"><div class="card-body"><h6 class="fw-bold">${i.title}</h6></div></div></div>`).join(''); }
 
-        function renderGallery() {
-            const grid = document.getElementById('gallery-grid');
-            grid.innerHTML = appState.gallery.map(item => `
-                <div class="col-md-4">
-                    <div class="card app-card h-100">
-                        <img src="${item.url}" class="card-img-top feed-img" alt="${item.title}" onerror="this.src='https://placehold.co/600x400?text=Loi+Anh'">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <h6 class="card-title fw-bold mb-0">${item.title}</h6>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteGallery(${item.id})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            document.getElementById('gallery-storage-indicator').innerText = `Dung lượng: ${appState.cloudUsed} / 3072 MB (3GB)`;
-        }
+        function addNote(e) { e.preventDefault(); appState.notes.unshift({ id: Date.now(), title: document.getElementById('note-title').value, content: document.getElementById('note-content').value }); saveState(); renderNotes(); }
+        function renderNotes() { document.getElementById('notes-grid').innerHTML = appState.notes.map(n => `<div class="col-md-4"><div class="card app-card p-3 border-start border-primary border-4"><h5>${n.title}</h5><p class="text-muted small">${n.content}</p></div></div>`).join(''); }
 
-        function deleteGallery(id) {
-            appState.gallery = appState.gallery.filter(i => i.id !== id);
-            saveState();
-            renderGallery();
-        }
+        function addChecklistTask(e) { e.preventDefault(); appState.checklist.unshift({ id: Date.now(), title: document.getElementById('task-title').value }); saveState(); renderChecklist(); }
+        function renderChecklist() { document.getElementById('checklist-container').innerHTML = appState.checklist.map(t => `<div class="card p-3 mb-2 app-card"><div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label fw-semibold">${t.title}</label></div></div>`).join(''); }
 
-        function addNote(e) {
-            e.preventDefault();
-            appState.notes.unshift({
-                id: Date.now(),
-                title: document.getElementById('note-title').value,
-                content: document.getElementById('note-content').value
-            });
-            saveState();
-            renderNotes();
-            document.getElementById('note-title').value = '';
-            document.getElementById('note-content').value = '';
-        }
-
-        function renderNotes() {
-            document.getElementById('notes-grid').innerHTML = appState.notes.map(n => `
-                <div class="col-md-4">
-                    <div class="card app-card p-3 h-100 border-start border-primary border-4">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="fw-bold mb-0">${n.title}</h5>
-                            <button class="btn btn-sm text-danger" onclick="deleteNote(${n.id})"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                        <p class="text-muted small mb-0">${n.content}</p>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function deleteNote(id) {
-            appState.notes = appState.notes.filter(n => n.id !== id);
-            saveState();
-            renderNotes();
-        }
-
-        function addChecklistTask(e) {
-            e.preventDefault();
-            const title = document.getElementById('task-title').value;
-            const imgInput = document.getElementById('task-images').value;
-            const images = imgInput ? imgInput.split(',').map(s => s.trim()) : [];
-            appState.checklist.unshift({ id: Date.now(), title, completed: false, images });
-            saveState();
-            renderChecklist();
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-images').value = '';
-        }
-
-        function renderChecklist() {
-            document.getElementById('checklist-container').innerHTML = appState.checklist.map(t => `
-                <div class="card p-3 mb-2 app-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})" id="task-${t.id}">
-                            <label class="form-check-label ${t.completed ? 'text-decoration-line-through text-muted' : 'fw-semibold'}" for="task-${t.id}">${t.title}</label>
-                        </div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${t.id})"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    ${t.images && t.images.length ? `
-                        <div class="d-flex gap-2 mt-2 overflow-auto">
-                            ${t.images.map(img => `<img src="${img}" class="rounded border" style="width: 60px; height: 60px; object-fit: cover;" onerror="this.style.display='none'">`).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        function toggleTask(id) {
-            const task = appState.checklist.find(t => t.id === id);
-            if (task) { task.completed = !task.completed; saveState(); renderChecklist(); }
-        }
-
-        function deleteTask(id) {
-            appState.checklist = appState.checklist.filter(t => t.id !== id);
-            saveState();
-            renderChecklist();
-        }
-
-        function renderCloud() {
-            const pct = Math.min(Math.round((appState.cloudUsed / 3072) * 100), 100);
-            const bar = document.getElementById('cloud-progress-bar');
-            bar.style.width = pct + '%';
-            bar.innerText = `${appState.cloudUsed} MB / 3072 MB (${pct}%)`;
-        }
-
-        function calcAppendNumber(num) {
-            calcInput = (calcInput === '0' && num !== '.') ? num : calcInput + num;
-            updateCalcDisplay();
-        }
-
-        function calcAppendOperator(op) {
-            calcInput += ' ' + op + ' ';
-            updateCalcDisplay();
-        }
-
-        function calcClear() { calcInput = '0'; updateCalcDisplay(); }
-
-        function calcSign() {
-            calcInput = calcInput.startsWith('-') ? calcInput.substring(1) : '-' + calcInput;
-            updateCalcDisplay();
-        }
-
-        function calcPercent() {
-            try { calcInput = String(eval(calcInput) / 100); updateCalcDisplay(); }
-            catch(e) { calcInput = 'Lỗi'; updateCalcDisplay(); }
-        }
-
-        function calcDelete() {
-            calcInput = calcInput.slice(0, -1);
-            if (!calcInput || calcInput === ' ') calcInput = '0';
-            updateCalcDisplay();
-        }
-
-        function calcCompute() {
-            try {
-                let sanitized = calcInput.replace(/×/g, '*').replace(/÷/g, '/');
-                calcInput = String(eval(sanitized));
-                updateCalcDisplay();
-            } catch(e) { calcInput = 'Lỗi'; updateCalcDisplay(); }
-        }
-
-        function updateCalcDisplay() {
-            document.getElementById('calc-display').innerText = calcInput;
-        }
-
-        function searchUsers() {
-            const q = document.getElementById('friend-search-input').value.toLowerCase();
-            const res = document.getElementById('search-user-results');
-            if (!q) { res.innerHTML = ''; return; }
-            const found = appState.usersList.filter(u => u.toLowerCase().includes(q) && u !== appState.currentUser);
-            res.innerHTML = found.length ? found.map(u => `
-                <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1 shadow-sm">
-                    <span class="fw-semibold"><i class="fa-solid fa-user me-2 text-primary"></i>${u}</span>
-                    <button class="btn btn-sm btn-primary" onclick="startPrivateChat('${u}')"><i class="fa-solid fa-comment"></i> Nhắn</button>
-                </div>
-            `).join('') : '<small class="text-muted">Không tìm thấy.</small>';
-        }
-
-        function startPrivateChat(user) {
-            currentChatRoom = `chat_${[appState.currentUser, user].sort().join('_')}`;
-            document.getElementById('active-chat-title').innerHTML = `<i class="fa-solid fa-user text-success me-2"></i>Trò chuyện với ${user}`;
-            renderChatMessages();
-        }
-
-        function selectChatRoom(code, name) {
-            currentChatRoom = code;
-            document.getElementById('active-chat-title').innerHTML = `<i class="fa-solid fa-globe text-primary me-2"></i>${name}`;
-            renderChatMessages();
-        }
+        function renderCloud() {}
+        function calcAppendNumber(n) { calcInput = (calcInput === '0' && n !== '.') ? n : calcInput + n; updateCalc(); }
+        function calcAppendOperator(op) { calcInput += ' ' + op + ' '; updateCalc(); }
+        function calcClear() { calcInput = '0'; updateCalc(); }
+        function calcDelete() { calcInput = calcInput.slice(0, -1) || '0'; updateCalc(); }
+        function calcCompute() { try { calcInput = String(eval(calcInput.replace(/×/g, '*').replace(/÷/g, '/'))); } catch(e) { calcInput = 'Lỗi'; } updateCalc(); }
+        function updateCalc() { document.getElementById('calc-display').innerText = calcInput; }
 
         function sendChatMessage(e) {
             e.preventDefault();
-            const text = document.getElementById('chat-input-message').value;
-            if (!text.trim()) return;
-
-            appState.chatMessages.push({
-                id: Date.now(),
-                room: currentChatRoom,
-                sender: appState.currentUser,
-                message: text,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            });
-            saveState();
-            renderChatMessages();
-            document.getElementById('chat-input-message').value = '';
+            appState.chatMessages.push({ id: Date.now(), sender: appState.currentUser, message: document.getElementById('chat-input-message').value, time: new Date().toLocaleTimeString() });
+            saveState(); renderChatMessages(); document.getElementById('chat-input-message').value = '';
         }
-
         function renderChatMessages() {
-            const container = document.getElementById('chat-messages-container');
-            const msgs = appState.chatMessages.filter(m => m.room === currentChatRoom);
-            container.innerHTML = msgs.length ? msgs.map(m => {
-                const isMe = m.sender === appState.currentUser;
-                return `
-                    <div class="d-flex flex-column mb-2 ${isMe ? 'align-items-end' : 'align-items-start'}">
-                        <small class="text-muted mb-1" style="font-size: 0.75rem;">${m.sender} • ${m.time}</small>
-                        <div class="message-bubble ${isMe ? 'message-outgoing' : 'message-incoming'}">${m.message}</div>
-                    </div>
-                `;
-            }).join('') : '<div class="text-center text-muted my-auto">Chưa có tin nhắn.</div>';
-            container.scrollTop = container.scrollHeight;
+            document.getElementById('chat-messages-container').innerHTML = appState.chatMessages.map(m => `<div class="d-flex flex-column mb-2 ${m.sender === appState.currentUser ? 'align-items-end' : 'align-items-start'}"><small class="text-muted">${m.sender}</small><div class="message-bubble ${m.sender === appState.currentUser ? 'message-outgoing' : 'message-incoming'}">${m.message}</div></div>`).join('');
         }
 
         function createFeedPost(e) {
             e.preventDefault();
-            appState.feedPosts.unshift({
-                id: Date.now(),
-                author: appState.currentUser,
-                caption: document.getElementById('feed-caption').value,
-                imageUrl: document.getElementById('feed-image-url').value,
-                likes: [],
-                comments: [],
-                time: 'Vừa xong'
-            });
+            appState.feedPosts.unshift({ id: Date.now(), author: appState.currentUser, caption: document.getElementById('feed-caption').value, imageUrl: document.getElementById('feed-image-url').value });
+            saveState(); renderFeedPosts();
+        }
+        function renderFeedPosts() { document.getElementById('feed-posts-container').innerHTML = appState.feedPosts.map(p => `<div class="card app-card mb-4"><div class="card-header bg-white fw-bold">${p.author}</div><div class="card-body"><p>${p.caption}</p><img src="${p.imageUrl}" class="feed-img"></div></div>`).join(''); }
+        function renderTrash() { document.getElementById('trash-table-body').innerHTML = `<tr><td colspan="4" class="text-center text-success fw-semibold"><i class="fa-solid fa-lock me-1"></i> Dữ liệu khách hàng được bảo vệ an toàn tuyệt đối, không thể xóa.</td></tr>`; }
+
+        function adminGrantStorage(index) {
+            appState.registeredUsers[index].storageMb += 1024;
             saveState();
-            renderFeedPosts();
-            document.getElementById('feed-caption').value = '';
-            document.getElementById('feed-image-url').value = '';
+            renderAdminPanel();
+            alert(`✅ Đã cấp thêm 1GB cho tài khoản ${appState.registeredUsers[index].username}`);
         }
 
-        function toggleLikePost(id) {
-            const post = appState.feedPosts.find(p => p.id === id);
-            if (post) {
-                const idx = post.likes.indexOf(appState.currentUser);
-                if (idx > -1) post.likes.splice(idx, 1);
-                else post.likes.push(appState.currentUser);
-                saveState();
-                renderFeedPosts();
-            }
-        }
-
-        function addCommentToPost(id, e) {
-            e.preventDefault();
-            const text = document.getElementById(`comment-input-${id}`).value;
-            if (!text.trim()) return;
-            const post = appState.feedPosts.find(p => p.id === id);
-            if (post) {
-                post.comments.push({ author: appState.currentUser, text });
-                saveState();
-                renderFeedPosts();
-            }
-        }
-
-        function sharePost(id) {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Đã sao chép liên kết bài viết!");
-        }
-
-        function renderFeedPosts() {
-            const container = document.getElementById('feed-posts-container');
-            container.innerHTML = appState.feedPosts.map(post => {
-                const isLiked = post.likes.includes(appState.currentUser);
-                return `
-                    <div class="card app-card mb-4">
-                        <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-circle-user fs-4 text-primary"></i>
-                                <span class="fw-bold">${post.author}</span>
-                            </div>
-                            <small class="text-muted">${post.time}</small>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">${post.caption}</p>
-                            <img src="${post.imageUrl}" class="feed-img mb-3" alt="Post" onerror="this.src='https://placehold.co/600x400?text=Loi+Anh'">
-                            <div class="d-flex justify-content-between border-top border-bottom py-2 text-muted small">
-                                <span><i class="fa-solid fa-heart text-danger me-1"></i> ${post.likes.length} lượt thích</span>
-                                <span>${post.comments.length} bình luận</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                            <div class="d-flex justify-content-around mb-3">
-                                <button class="btn btn-sm btn-light flex-grow-1 ${isLiked ? 'text-danger fw-bold' : ''}" onclick="toggleLikePost(${post.id})">
-                                    <i class="fa-${isLiked ? 'solid' : 'regular'} fa-heart me-1"></i> Thích
-                                </button>
-                                <button class="btn btn-sm btn-light flex-grow-1" onclick="sharePost(${post.id})">
-                                    <i class="fa-solid fa-share me-1"></i> Chia sẻ
-                                </button>
-                            </div>
-                            <div class="comments-section bg-light p-3 rounded">
-                                <div class="mb-2">
-                                    ${post.comments.map(c => `<div class="small mb-1"><b>${c.author}:</b>${c.text}</div>`).join('')}
-                                </div>
-                                <form onsubmit="addCommentToPost(${post.id}, event)" class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="comment-input-${post.id}" placeholder="Viết bình luận..." required>
-                                    <button class="btn btn-primary" type="submit">Gửi</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderTrash() {
-            document.getElementById('trash-table-body').innerHTML = appState.trash.map((item, idx) => `
+        function renderAdminPanel() {
+            document.getElementById('admin-users-tbody').innerHTML = appState.registeredUsers.map((u, i) => `
                 <tr>
-                    <td><span class="badge bg-secondary">${item.type}</span></td>
-                    <td>${item.title}</td>
-                    <td>${item.time}</td>
+                    <td class="fw-semibold">${u.username}</td>
+                    <td><code>${u.contact}</code></td>
+                    <td><span class="badge bg-info">${u.storageMb} MB</span></td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeTrash(${idx})"><i class="fa-solid fa-xmark"></i></button>
+                        <button class="btn btn-sm btn-success fw-bold" onclick="adminGrantStorage(${i})"><i class="fa-solid fa-plus"></i> Cấp 1GB</button>
                     </td>
                 </tr>
             `).join('');
         }
-
-        function removeTrash(idx) {
-            appState.trash.splice(idx, 1);
-            saveState();
-            renderTrash();
-        }
-
-        function emptyTrash() {
-            appState.trash = [];
-            saveState();
-            renderTrash();
-        }
-
-        function renderAdminStats() {
-            document.getElementById('admin-username-input').value = appState.currentUser;
-            document.getElementById('admin-stat-cf').innerText = appState.cashflow.length;
-            document.getElementById('admin-stat-bills').innerText = appState.savedBills.length;
-            document.getElementById('admin-stat-feed').innerText = appState.feedPosts.length;
-            document.getElementById('admin-stat-trash').innerText = appState.trash.length;
-        }
-
-        function resetAllData() {
-            if (confirm("Bạn có chắc chắn muốn đặt lại toàn bộ dữ liệu?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        window.onload = function() {
-            renderDashboard();
-            if (validAdminAccounts[appState.currentUser]) {
-                document.getElementById('admin-nav-item').classList.remove('d-none');
-            }
-        };
     </script>
 </body>
 </html>
