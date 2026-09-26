@@ -3,143 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập / Đăng Ký Hệ Thống</title>
-    <!-- Thêm Bootstrap để giao diện đẹp mắt -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Ứng Dụng Đa Chức Năng</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bs-body-font-family: 'Inter', sans-serif;
+            --sidebar-width: 260px;
+        }
+        body {
+            background-color: #f4f7f6;
+            font-family: var(--bs-body-font-family);
+            color: #333;
+        }
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #1e1e2d;
+            color: #a2a3b7;
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        #sidebar .brand {
+            padding: 22px 20px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            color: #ffffff;
+        }
+        #sidebar .nav-link {
+            color: #a2a3b7;
+            padding: 12px 20px;
+            margin: 4px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active {
+            color: #ffffff;
+            background: #3699ff;
+        }
+        #sidebar .nav-link i {
+            width: 24px;
+        }
+        #content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        .app-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            background: #ffffff;
+        }
+        .app-card:hover {
+            transform: translateY(-2px);
+        }
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .calculator-grid button {
+            height: 60px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+        .calc-display {
+            background: #1e1e2d;
+            color: #00ffcc;
+            font-size: 2rem;
+            text-align: right;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .chat-sidebar {
+            border-right: 1px solid #dee2e6;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        .chat-messages {
+            height: calc(100vh - 240px);
+            overflow-y: auto;
+            background: #fdfdfe;
+        }
+        .message-bubble {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+        .message-incoming {
+            background: #e9ecef;
+            align-self: flex-start;
+        }
+        .message-outgoing {
+            background: #3699ff;
+            color: white;
+            align-self: flex-end;
+        }
+        .feed-img {
+            max-height: 450px;
+            object-fit: cover;
+            width: 100%;
+            border-radius: 10px;
+        }
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+            #content {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+<body>
 
-    <div class="card shadow p-4" style="width: 400px;" id="auth-container">
-        <!-- FORM ĐĂNG NHẬP -->
-        <div id="login-section">
-            <h3 class="text-center mb-3">Đăng Nhập Hệ Thống</h3>
-            <form id="form-dang-nhap">
-                <div class="mb-3">
-                    <label class="form-label">Tên tài khoản</label>
-                    <input type="text" class="form-control" id="login-username" required>
+    <!-- MÀN HÌNH CHẶN BẮT BUỘC ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-overlay" class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-dark position-fixed" style="z-index: 3000;">
+        <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 440px; width: 100%;">
+            
+            <!-- 1. FORM ĐĂNG NHẬP -->
+            <div id="form-login-box">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-cube fs-1 text-primary mb-2"></i>
+                    <h3 class="fw-bold">Đăng Nhập Hệ Thống</h3>
+                    <p class="text-muted small">Vui lòng đăng nhập để tiếp tục sử dụng.</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-control" id="login-password" required>
+                <form id="form-login-submit">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên tài khoản</label>
+                        <input type="text" class="form-control" id="login-username" placeholder="Nhập tài khoản..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu</label>
+                        <input type="password" class="form-control" id="login-password" placeholder="Nhập mật khẩu..." required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary py-2 fw-bold"><i class="fa-solid fa-right-to-bracket me-1"></i> Đăng Nhập</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3 small">
+                    Chưa có tài khoản? <a href="#" class="fw-bold text-decoration-none" onclick="switchAuthTab('register')">Đăng ký ngay</a>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
-            </form>
-            <div class="text-center mt-3">
-                <small>Chưa có tài khoản? <a href="#" id="to-register">Đăng ký ngay</a></small>
             </div>
-        </div>
 
-        <!-- FORM ĐĂNG KÝ (Ẩn ban đầu) -->
-        <div id="register-section" class="d-none">
-            <h3 class="text-center mb-3">Đăng Ký Tài Khoản</h3>
-            <form id="form-dang-ky">
-                <div class="mb-3">
-                    <label class="form-label">Tên tài khoản</label>
-                    <input type="text" class="form-control" id="reg-username" required>
+            <!-- 2. FORM ĐĂNG KÝ -->
+            <div id="form-register-box" style="display: none;">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-user-plus fs-1 text-success mb-2"></i>
+                    <h3 class="fw-bold">Đăng Ký Tài Khoản</h3>
+                    <p class="text-muted small">Tạo tài khoản mới của bạn.</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-control" id="reg-password" required>
+                <form id="form-register-submit">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên tài khoản</label>
+                        <input type="text" class="form-control" id="reg-username" placeholder="Chọn tên tài khoản..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mật khẩu</label>
+                        <input type="password" class="form-control" id="reg-password" placeholder="Tạo mật khẩu..." required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success py-2 fw-bold"><i class="fa-solid fa-check me-1"></i> Hoàn Tất Đăng Ký</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3 small">
+                    Đã có tài khoản? <a href="#" class="fw-bold text-decoration-none" onclick="switchAuthTab('login')">Đăng nhập</a>
                 </div>
-                <button type="submit" class="btn btn-success w-100">Đăng Ký</button>
-            </form>
-            <div class="text-center mt-3">
-                <small>Đã có tài khoản? <a href="#" id="to-login">Đăng nhập ngay</a></small>
             </div>
-        </div>
-        
-        <!-- KHU VỰC SAU KHI ĐĂNG NHẬP THÀNH CÔNG (Ẩn ban đầu) -->
-        <div id="dashboard-section" class="d-none text-center">
-            <h3>Chào mừng, <span id="welcome-user"></span>!</h3>
-            <p class="text-success">Bạn đã đăng nhập thành công vào hệ thống.</p>
-            <button class="btn btn-danger w-100 mt-3" id="btn-logout">Đăng Xuất</button>
+
         </div>
     </div>
 
-    <!-- JAVASCRIPT XỬ LÝ -->
+    <!-- SIDEBAR NAVIGATION (MENU CHÍNH) -->
+    <div id="sidebar" class="d-flex flex-column">
+        <div class="brand d-flex align-items-center justify-content-between">
+            <span><i class="fa-solid fa-cube me-2 text-primary"></i>Ứng Dụng Đa Chức Năng</span>
+            <button class="btn btn-sm btn-dark d-md-none text-white" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-2 flex-grow-1">
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item mb-1"><a href="#" class="nav-link active" data-target="dashboard-view"><i class="fa-solid fa-chart-pie"></i> Tổng Quan</a></li>
+                <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="cashflow-view"><i class="fa-solid fa-wallet"></i> Quản Lý Dòng Tiền</a></li>
+                <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="bill-view"><i class="fa-solid fa-receipt"></i> Hóa Đơn Mua Sắm (Bill)</a></li>
+                <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="calculator-view"><i class="fa-solid fa-calculator"></i> Máy Tính Cầm Tay</a></li>
+                <li class="nav-item mb-1"><a href="#" class="nav-link" data-target="chat-view"><i class="fa-solid fa-comments"></i> Chat Giữa Mọi Người</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="content">
+        <!-- TOP NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-3 sticky-top shadow-sm">
+            <div class="container-fluid ps-0">
+                <button class="btn btn-outline-secondary me-3 d-md-none" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                <h4 class="mb-0 fw-bold text-dark" id="page-title">Tổng Quan Hệ Thống</h4>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <span id="current-user-display" class="fw-semibold text-primary">Tài khoản</span>
+                    <button class="btn btn-outline-danger btn-sm" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid p-4">
+
+            <!-- 1. DASHBOARD -->
+            <div id="dashboard-view" class="app-view">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card app-card bg-primary text-white p-3">
+                            <h6 class="text-white-50">Tổng Thu</h6>
+                            <h3 id="dash-total-income" class="fw-bold mb-0">0 đ</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card app-card bg-danger text-white p-3">
+                            <h6 class="text-white-50">Tổng Chi</h6>
+                            <h3 id="dash-total-expense" class="fw-bold mb-0">0 đ</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card app-card bg-success text-white p-3">
+                            <h6 class="text-white-50">Số Dư Hiện Tại</h6>
+                            <h3 id="dash-balance" class="fw-bold mb-0">0 đ</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. CASHFLOW -->
+            <div id="cashflow-view" class="app-view d-none">
+                <div class="card app-card p-4">
+                    <h5 class="fw-bold mb-3">Quản Lý Dòng Tiền</h5>
+                    <p class="text-muted">Tính năng đang hoạt động bình thường.</p>
+                </div>
+            </div>
+
+            <!-- 3. BILL -->
+            <div id="bill-view" class="app-view d-none">
+                <div class="card app-card p-4">
+                    <h5 class="fw-bold mb-3">Hóa Đơn Mua Sắm</h5>
+                </div>
+            </div>
+
+            <!-- 4. CALCULATOR -->
+            <div id="calculator-view" class="app-view d-none">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card app-card p-4 shadow-sm">
+                            <h4 class="fw-bold text-center mb-3">Máy Tính</h4>
+                            <div class="calc-display" id="calc-display">0</div>
+                            <div class="calculator-grid">
+                                <button class="btn btn-outline-secondary" onclick="calcClear()">C</button>
+                                <button class="btn btn-outline-secondary" onclick="calcSign()">±</button>
+                                <button class="btn btn-outline-secondary" onclick="calcPercent()">%</button>
+                                <button class="btn btn-warning text-white" onclick="calcAppendOperator('/')">÷</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('7')">7</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('8')">8</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('9')">9</button>
+                                <button class="btn btn-warning text-white" onclick="calcAppendOperator('*')">×</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('4')">4</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('5')">5</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('6')">6</button>
+                                <button class="btn btn-warning text-white" onclick="calcAppendOperator('-')">-</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('1')">1</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('2')">2</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('3')">3</button>
+                                <button class="btn btn-warning text-white" onclick="calcAppendOperator('+')">+</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('0')">0</button>
+                                <button class="btn btn-light border" onclick="calcAppendNumber('.')">.</button>
+                                <button class="btn btn-danger" onclick="calcDelete()">⌫</button>
+                                <button class="btn btn-success" onclick="calcCompute()">=</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. CHAT -->
+            <div id="chat-view" class="app-view d-none">
+                <div class="card app-card p-4">
+                    <h5 class="fw-bold">Phòng Chat</h5>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        const loginSection = document.getElementById('login-section');
-        const registerSection = document.getElementById('register-section');
-        const dashboardSection = document.getElementById('dashboard-section');
-        
-        // Chuyển đổi qua lại giữa form Đăng nhập và Đăng ký
-        document.getElementById('to-register').addEventListener('click', (e) => {
-            e.preventDefault();
-            loginSection.classList.add('d-none');
-            registerSection.classList.remove('d-none');
+        let appState = {
+            currentUser: localStorage.getItem('multi_app_user') || '',
+            registeredUsers: JSON.parse(localStorage.getItem('multi_app_reg_users')) || [
+                { username: "Hanry", password: "123" }
+            ],
+            cashflow: JSON.parse(localStorage.getItem('multi_app_cashflow')) || []
+        };
+
+        let calcInput = '0';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthOverlay();
         });
 
-        document.getElementById('to-login').addEventListener('click', (e) => {
+        function checkAuthOverlay() {
+            const overlay = document.getElementById('auth-overlay');
+            if (!appState.currentUser) {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+                document.getElementById('current-user-display').innerText = appState.currentUser;
+            }
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('form-login-box').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('form-register-box').style.display = tab === 'register' ? 'block' : 'none';
+        }
+
+        // Xử lý đăng ký chuẩn LocalStorage
+        document.getElementById('form-register-submit').addEventListener('submit', function(e) {
             e.preventDefault();
-            registerSection.classList.add('d-none');
-            loginSection.classList.remove('d-none');
-        });
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
 
-        // Xử lý Đăng ký
-        document.getElementById('form-dang-ky').addEventListener('submit', function(e) {
-            e.preventDefault();
-            let user = document.getElementById('reg-username').value.trim();
-            let pass = document.getElementById('reg-password').value.trim();
-
-            let users = JSON.parse(localStorage.getItem('listUsers')) || [];
-
-            // Kiểm tra trùng tên tài khoản
-            let existing = users.find(u => u.username === user);
-            if (existing) {
-                alert('Tên tài khoản này đã tồn tại!');
+            if (appState.registeredUsers.some(u => u.username === username)) {
+                alert("Tên tài khoản này đã tồn tại!");
                 return;
             }
 
-            // Lưu tài khoản mới
-            users.push({ username: user, password: pass });
-            localStorage.setItem('listUsers', JSON.stringify(users));
-
-            alert('Đăng ký thành công! Hãy đăng nhập lại.');
-            registerSection.classList.add('d-none');
-            loginSection.classList.remove('d-none');
+            appState.registeredUsers.push({ username, password });
+            localStorage.setItem('multi_app_reg_users', JSON.stringify(appState.registeredUsers));
+            alert("✅ Đăng ký thành công! Vui lòng đăng nhập.");
+            switchAuthTab('login');
         });
 
-        // Xử lý Đăng nhập
-        document.getElementById('form-dang-nhap').addEventListener('submit', function(e) {
+        // Xử lý đăng nhập chuẩn LocalStorage
+        document.getElementById('form-login-submit').addEventListener('submit', function(e) {
             e.preventDefault();
-            let user = document.getElementById('login-username').value.trim();
-            let pass = document.getElementById('login-password').value.trim();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
 
-            let users = JSON.parse(localStorage.getItem('listUsers')) || [];
-
-            // Kiểm tra tài khoản trong LocalStorage hoặc tài khoản mẫu mặc định (Hanry / 123)
-            let validUser = users.find(u => u.username === user && u.password === pass);
-
-            if (validUser || (user === 'Hanry' && pass === '123')) {
-                // Hiển thị giao diện Dashboard
-                loginSection.classList.add('d-none');
-                dashboardSection.classList.remove('d-none');
-                document.getElementById('welcome-user').innerText = user;
-                
-                // Lưu trạng thái đang đăng nhập
-                localStorage.setItem('currentUser', user);
+            const found = appState.registeredUsers.find(u => u.username === username && u.password === password);
+            if (found || (username === "Hanry" && password === "123")) {
+                appState.currentUser = username;
+                localStorage.setItem('multi_app_user', username);
+                checkAuthOverlay();
             } else {
-                alert('Sai tên tài khoản hoặc mật khẩu!');
+                alert("Sai tên tài khoản hoặc mật khẩu!");
             }
         });
 
-        // Xử lý Đăng xuất
-        document.getElementById('btn-logout').addEventListener('click', function() {
-            localStorage.removeItem('currentUser');
-            dashboardSection.classList.add('d-none');
-            loginSection.classList.remove('d-none');
-            document.getElementById('form-dang-nhap').reset();
+        function logoutUser() {
+            appState.currentUser = '';
+            localStorage.removeItem('multi_app_user');
+            checkAuthOverlay();
+        }
+
+        // Chuyển tab menu bên trái
+        document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.app-view').forEach(el => el.classList.add('d-none'));
+                document.getElementById(this.getAttribute('data-target')).classList.remove('d-none');
+                
+                document.querySelectorAll('#sidebar .nav-link').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('page-title').innerText = this.innerText.trim();
+            });
         });
 
-        // Kiểm tra nếu trước đó đã đăng nhập rồi thì giữ nguyên trạng thái
-        window.addEventListener('load', function() {
-            let currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                loginSection.classList.add('d-none');
-                dashboardSection.classList.remove('d-none');
-                document.getElementById('welcome-user').innerText = currentUser;
-            }
-        });
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+        }
+
+        // Máy tính cầm tay cơ bản
+        function calcAppendNumber(n) { calcInput = (calcInput === '0' && n !== '.') ? n : calcInput + n; updateCalc(); }
+        function calcAppendOperator(op) { calcInput += ' ' + op + ' '; updateCalc(); }
+        function calcClear() { calcInput = '0'; updateCalc(); }
+        function calcDelete() { calcInput = calcInput.slice(0, -1) || '0'; updateCalc(); }
+        function calcCompute() { try { calcInput = String(eval(calcInput.replace(/×/g, '*').replace(/÷/g, '/'))); } catch(e) { calcInput = 'Lỗi'; } updateCalc(); }
+        function updateCalc() { document.getElementById('calc-display').innerText = calcInput; }
     </script>
 </body>
 </html>
