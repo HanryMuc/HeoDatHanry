@@ -1,15 +1,25 @@
 {
-  "name": "Quản lý dòng tiền",
-  "short_name": "Quản lý chi tiêu",
+  "name": "Ứng Dụng Đa Chức Năng",
+  "short_name": "Đa Chức Năng",
+  "description": "Hệ thống quản lý tài chính, hóa đơn, ghi chú, kho ảnh và lưu trữ đám mây toàn diện.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f8f9fa",
   "theme_color": "#0d6efd",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2921/2921222.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2921/2921222.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
