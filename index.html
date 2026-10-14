@@ -122,7 +122,6 @@
         }
         #customImageViewer img { max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 12px; }
 
-        /* Style bổ sung cho máy tính & POS bill */
         .calculator-btn {
             height: 60px; font-size: 1.25rem; font-weight: bold;
             background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.15) !important; color: white !important;
@@ -140,7 +139,7 @@
                 <i class="fa-solid fa-bars fs-4 text-info"></i>
             </button>
             <span class="navbar-brand mb-0 h1 fw-bold text-info mx-auto">
-                <i class="fa-solid fa-piggy-bank me-2"></i> Quản Lý Dòng Tiền 3D Pro
+                <i class="fa-solid fa-piggy-bank me-2"></i> Quản Lý Dòng Tiền 3D Pro Max
             </span>
         </div>
     </nav>
@@ -476,7 +475,7 @@
         </div>
     </div>
 
-    <!-- ADMIN LOGIN MODAL (SHIFT + 2) -->
+    <!-- ADMIN LOGIN MODAL (SHIFT + F10) -->
     <div id="adminLoginModal" class="container mt-5" style="display: none; max-width: 400px;">
         <div class="card shadow p-4 mt-5 rounded-4 border-0">
             <h4 class="text-center mb-3 text-danger fw-bold">🛡️ Quản Trị Hệ Thống</h4>
@@ -587,16 +586,15 @@
         let trashImages = [];
         let userNotes = [];
         let checklistFolders = [];
-        let globalPosts = []; // Bảng tin Facebook
-        let friendsList = []; // Danh sách bạn bè
-        let chatMessages = []; // Tin nhắn riêng
-        let cartItems = []; // Giỏ hàng tính bill
+        let globalPosts = [];
+        let friendsList = [];
+        let chatMessages = [];
+        let cartItems = [];
         let activeChatUser = null;
         let purchasedGB = 0;
         let pendingGB = 1;
         let tempFbImageDataUrl = null;
 
-        // Sản phẩm mẫu sẵn có giá tiền cho mục POS Bill
         const defaultProducts = [
             { id: 1, name: "Cà phê đen đá", price: 25000, icon: "fa-mug-hot" },
             { id: 2, name: "Cà phê sữa đá", price: 30000, icon: "fa-mug-saucer" },
@@ -757,7 +755,6 @@
         function deleteItem(index) { transactions.splice(index, 1); updateUI(); }
         function clearHistory() { if (confirm('Xóa tất cả lịch sử?')) { transactions = []; updateUI(); } }
 
-        // --- MỤC ĐĂNG ẢNH NHƯ FACEBOOK (LIKE, TIM, COMMENT, SHARE) ---
         function previewFbImage(event) {
             const file = event.target.files[0];
             if(!file) return;
@@ -786,8 +783,8 @@
                 caption: caption,
                 image: tempFbImageDataUrl || '',
                 date: new Date().toLocaleString('vi-VN'),
-                likes: {}, // { username: 'like'/'love' }
-                comments: [] // [{ author, text, date }]
+                likes: {},
+                comments: []
             };
 
             await window.dbSet(window.dbRef(window.db, 'posts/' + newPost.id), newPost);
@@ -891,7 +888,6 @@
             alert("Đã sao chép liên kết bài viết vào bộ nhớ tạm để chia sẻ!");
         }
 
-        // --- HỘP THOẠI RIÊNG & KẾT BẠN ---
         async function searchAndAddFriend() {
             const name = document.getElementById('searchUserChatInput').value.trim();
             if(!name || name === currentUser) { alert('Tên không hợp lệ!'); return; }
@@ -986,7 +982,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- MÁY TÍNH CÁ NHÂN ---
         function calcAppend(val) {
             const disp = document.getElementById('calcDisplay');
             if(disp.value === '0' || disp.value === 'Lỗi') disp.value = '';
@@ -1000,7 +995,6 @@
             } catch(e) { disp.value = 'Lỗi'; }
         }
 
-        // --- MỤC TÍNH BILL & GIỎ HÀNG (DẤU CỘNG THÊM SẢN PHẨM CÓ SẴN GIÁ) ---
         function renderProductCatalog() {
             const container = document.getElementById('productCatalogList');
             if(!container) return;
@@ -1012,7 +1006,7 @@
                     <div>
                         <i class="fa-solid ${prod.icon} text-info me-2"></i>
                         <strong class="text-light">${prod.name}</strong>
-                        <div class="small text-success fw-bold">${prod.toLocaleString ? prod.price.toLocaleString() : prod.price.toLocaleString('vi-VN')} đ</div>
+                        <div class="small text-success fw-bold">${prod.price.toLocaleString('vi-VN')} đ</div>
                     </div>
                     <button class="btn btn-sm btn-success fw-bold px-3" onclick="addToCart(${prod.id})"><i class="fa-solid fa-plus"></i></button>
                 `;
@@ -1073,7 +1067,6 @@
             if(cartItems.length === 0) { alert('Giỏ hàng trống!'); return; }
             let total = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
             
-            // Tự động thêm vào lịch sử dòng tiền giao dịch rút/chi tiêu
             const now = new Date();
             transactions.push({
                 type: 'withdraw',
@@ -1088,7 +1081,6 @@
             updateUI();
         }
 
-        // --- GHI CHÚ & CHECKLIST & KHÁC ---
         function saveNewNote(event) {
             event.preventDefault();
             const title = document.getElementById('noteTitle').value.trim();
@@ -1208,9 +1200,9 @@
             else { input.type = "password"; btn.innerHTML = '<i class="fa-solid fa-eye"></i>'; }
         }
 
-        // ADMIN SHORTCUT SHIFT + 2
+        // ADMIN SHORTCUT SHIFT + F10
         document.addEventListener('keydown', function(event) {
-            if(event.shiftKey && event.code === 'Digit2') {
+            if(event.shiftKey && event.code === 'F10') {
                 event.preventDefault();
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('appSection').style.display = 'none';
